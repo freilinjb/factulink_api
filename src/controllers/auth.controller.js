@@ -25,7 +25,7 @@ exports.auth = async (req, res, next) => {
       const jsonToken = sign({ result: results }, "qw1234", {
         expiresIn: "48h",
       });
-      const { usuario, nombre, tipo } = results;
+      const { usuario, nombre, tipo, idUsuario } = results;
 
       return res.json({
         success: 1,
@@ -33,6 +33,7 @@ exports.auth = async (req, res, next) => {
         token: jsonToken,
         auth: true,
         data: {
+          idUsuario,
           usuario,
           nombre,
           tipo,

@@ -3,11 +3,7 @@ const router = require('express').Router();
 const { checkToken } = require('../auth/token_validation');
 const product = require('../controllers/product.controller');
 
-router.get(
-    "/product",
-    checkToken,
-    product.getProduct
-);
+
 
 router.get(
     "/product/category",
@@ -38,5 +34,19 @@ router.post(
     checkToken,
     product.registerProduct
 )
+
+
+router.get(
+    "/product/:idProducto",
+    checkToken,
+    product.getProduct
+);
+
+router.get(
+    "/product",
+    checkToken,
+    product.getProduct
+);
+
 
 module.exports = router;

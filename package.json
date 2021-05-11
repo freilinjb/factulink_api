@@ -21,7 +21,8 @@
     "express": "^4.17.1",
     "express-validator": "^6.10.1",
     "jsonwebtoken": "^8.5.1",
-    "mysql": "^2.18.1"
+    "mysql": "^2.18.1",
+    "react-toast-notifications": "^2.4.4"
   },
   "devDependencies": {
     "morgan": "^1.10.0",

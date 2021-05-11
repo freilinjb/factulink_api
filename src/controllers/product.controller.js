@@ -2,8 +2,8 @@ const { getProduct, getCategory, getSubCategory, getBrand, getPresentationUnid, 
 
 exports.getProduct = (req, res) => {
   let idProducto = null;
-
-  idProducto = req.body.idProducto ? req.body.idProducto : null;
+  idProducto = req.params.idProducto ? req.params.idProducto : null;
+  //const prueba = req.query.prueba;
   getProduct(idProducto, (err, results) => {
     if (err) {
       return res.status(500).json({

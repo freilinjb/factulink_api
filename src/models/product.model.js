@@ -3,7 +3,7 @@ const { connection } = require("../config/database");
 exports.getProduct = async (idProducto, callback) => {
   try {
     let condicion = null;
-
+    console.log('condicion: ', condicion);
     condicion = idProducto ? `WHERE p.idProducto = ${idProducto}` : "";
     console.log("condicion: ", condicion);
 
