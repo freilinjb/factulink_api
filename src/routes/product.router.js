@@ -2,37 +2,39 @@ const router = require('express').Router();
 const multer = require('multer');
 
 const { checkToken } = require('../auth/token_validation');
+const { upload } = require('../helpers');
+
 const product = require('../controllers/product.controller');
 
-const storage = multer.diskStorage({
-    destination: function(req, file, cb) {
-      cb(null, './src/uploads/img/product');
-    },
-    filename: function(req, file, cb) {
-      cb(null, `${Math.random(0,1).toString().substr(2)}${file.originalname}`);
-    }
-  });
+// const storage = multer.diskStorage({
+//     destination: function(req, file, cb) {
+//       cb(null, './src/uploads/img/product');
+//     },
+//     filename: function(req, file, cb) {
+//       cb(null, `${Math.random(0,1).toString().substr(2)}${file.originalname}`);
+//     }
+//   });
 
-  const fileFilter = (req, file, cb) => {
-    // reject a file
-    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
-      cb(null, true);
-    } else {
-      cb(null, false);
-    }
-  };
+//   const fileFilter = (req, file, cb) => {
+//     // reject a file
+//     if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+//       cb(null, true);
+//     } else {
+//       cb(null, false);
+//     }
+//   };
 
-  const upload = multer({
-    storage: storage,
-    limits: {
-      fileSize: 1024 * 1024 * 5
-    },
-    fileFilter: fileFilter
-  });
+//   const upload = multer({
+//     storage: storage,
+//     limits: {
+//       fileSize: 1024 * 1024 * 5
+//     },
+//     fileFilter: fileFilter
+//   });
 
 router.post("/uploads", upload.single('productImag'), (req, res, next) => {
     try {
-        console.log('asdfa');
+        console.log('asdfa: ', req.body);
     } catch (error) {
         console.log(error);
     }
@@ -70,12 +72,11 @@ router.post(
     product.registerProduct
 )
 
-
-router.get(
-    "/product/:idProducto",
-    checkToken,
-    product.getProduct
-);
+router.patch(
+  "/product",
+  checkToken,
+  product.registerProduct
+)
 
 router.get(
     "/product",
@@ -83,5 +84,11 @@ router.get(
     product.getProduct
 );
 
+
+router.get(
+  "/product/:idProducto",
+  checkToken,
+  product.getProductByID
+);
 
 module.exports = router;

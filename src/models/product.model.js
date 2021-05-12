@@ -43,6 +43,53 @@ exports.getProduct = async (idProducto, callback) => {
   }
 };
 
+exports.getProductByID = async (idProducto, callback) => {
+  try {
+    // let condicion = null;
+    // console.log('condicion: ', condicion);
+    // condicion = idProducto ? `WHERE p.idProducto = ${idProducto}` : "";
+    // console.log("condicion: ", condicion);
+    connection.query(
+      `SELECT p.idProducto,
+          p.codigo,
+          p.nombre,
+          COALESCE(m.idMarca,0) AS idMarca,
+          COALESCE(m.descripcion,'') AS marca,
+          c.idCategoria,
+          c.descripcion AS categoria,
+          s.idSubCategoria,
+          s.descripcion AS subcategoria,
+          p.stockInicial,
+          p.stockMinimo,
+          p.idUnidad,
+          un.descripcion AS unidad,
+          p.reorden,
+          COALESCE((SELECT PV.precio FROM precio_venta pv WHERE pv.idProducto = p.idProducto ORDER BY pv.fecha DESC LIMIT 1),0) AS precioVenta,
+          COALESCE((SELECT pc.precio FROM precio_compra pc WHERE pc.idProducto = p.idProducto ORDER BY pc.fecha DESC LIMIT 1),0) AS precioCompra,
+          p.observacion,
+          CASE WHEN p.itbis IS TRUE THEN 'activo' ELSE 'inactivo' END AS incluyeItbis,
+          p.creado_en,
+          COALESCE(u.usuario,'-') AS creado_por,
+          CASE WHEN p.estado IS TRUE THEN '1' ELSE '0' END AS idEstado,
+          CASE WHEN p.estado IS TRUE THEN 'activo' ELSE 'inactivo' END AS estado
+      FROM producto p 
+          INNER JOIN categoria c ON c.idCategoria = p.idCategoria
+          INNER JOIN subcategoria s ON s.idSubCategoria = p.idSubCategoria
+          INNER JOIN unidad un ON un.idUnidad = p.idUnidad
+          LEFT JOIN marca m ON m.idMarca = p.idMarca
+          LEFT JOIN usuario u ON u.idUsuario = p.creado_por
+      WHERE p.idProducto = ${idProducto}`,
+      [],
+      (error, results, fields) => {
+        return error ? callback(error) : callback(null, results);
+      }
+    );
+  } catch (error) {
+    console.error("error: ", error);
+    return "Ah ocurrido un error";
+  }
+};
+
 exports.getCategory = async (callback) => {
   try {
     connection.query(

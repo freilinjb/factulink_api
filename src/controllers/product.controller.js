@@ -1,10 +1,31 @@
-const { getProduct, getCategory, getSubCategory, getBrand, getPresentationUnid, registerProduct } = require("../models/product.model");
+const { getProduct, getCategory, getSubCategory, getBrand, getPresentationUnid, registerProduct, getProductByID } = require("../models/product.model");
 
 exports.getProduct = (req, res) => {
   let idProducto = null;
   idProducto = req.params.idProducto ? req.params.idProducto : null;
   //const prueba = req.query.prueba;
   getProduct(idProducto, (err, results) => {
+    if (err) {
+      return res.status(500).json({
+        error: 1,
+        success: 0,
+        msg: "Ah ocurrido un error interno",
+      });
+    }
+
+    return res.status(200).json({
+      success: 1,
+      data: results,
+    });
+  });
+};
+
+exports.getProductByID = (req, res) => {
+  console.log('prueba');
+  let idProducto = null;
+  idProducto = req.params.idProducto;
+  //const prueba = req.query.prueba;
+  getProductByID(idProducto, (err, results) => {
     if (err) {
       return res.status(500).json({
         error: 1,
