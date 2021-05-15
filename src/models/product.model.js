@@ -21,7 +21,7 @@ exports.getProduct = async (idProducto, callback) => {
                 COALESCE((SELECT PV.precio FROM precio_venta pv WHERE pv.idProducto = p.idProducto ORDER BY pv.fecha DESC LIMIT 1),0) AS precioVenta,
                 COALESCE((SELECT pc.precio FROM precio_compra pc WHERE pc.idProducto = p.idProducto ORDER BY pc.fecha DESC LIMIT 1),0) AS precioCompra,
                 p.observacion,
-                CASE WHEN p.itbis IS TRUE THEN 'activo' ELSE 'inactivo' END AS incluyeItbis,
+                CASE WHEN p.itbis IS TRUE THEN 'TRUE' ELSE 'FALSE' END AS incluyeItbis,
                 p.creado_en,
                 COALESCE(u.usuario,'-') AS creado_por,
                 CASE WHEN p.estado IS TRUE THEN 'activo' ELSE 'inactivo' END AS estado
@@ -66,6 +66,7 @@ exports.getProductByID = async (idProducto, callback) => {
           p.reorden,
           COALESCE((SELECT PV.precio FROM precio_venta pv WHERE pv.idProducto = p.idProducto ORDER BY pv.fecha DESC LIMIT 1),0) AS precioVenta,
           COALESCE((SELECT pc.precio FROM precio_compra pc WHERE pc.idProducto = p.idProducto ORDER BY pc.fecha DESC LIMIT 1),0) AS precioCompra,
+          p.descripcion,
           p.observacion,
           CASE WHEN p.itbis IS TRUE THEN 'activo' ELSE 'inactivo' END AS incluyeItbis,
           p.creado_en,
@@ -163,7 +164,7 @@ exports.getPresentationUnid = async (callback) => {
 exports.registerProduct = async (data, callback) => {
   try {
     const idProducto = data.idProducto != "" ? data.idProducto : "NULL";
-
+    console.log('data: ', data.idProducto);
     connection.query(
       "CALL registrarProducto (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
       [
@@ -189,7 +190,47 @@ exports.registerProduct = async (data, callback) => {
         return error ? callback(error) : callback(null, result[0]);
       }
     );
+
   } catch (error) {
     console.log("error: ", error);
   }
 };
+
+exports.updateProduct = async (data, callback) => {
+  try {
+    // const idProducto = data.idProducto != "" ? data.idProducto : "NULL";
+    console.log('updateProduct: ', data.incluyeItbis);
+    connection.query(
+      "CALL registrarProducto (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+      [
+        data.idProducto,
+        data.codigo,
+        data.nombre,
+        Number(data.idCategoria),
+        Number(data.idSubCategoria),
+        Number(data.idMarca),
+        Number(data.idUnidad),
+        data.descripcion,
+        Number(data.stockInicial),
+        Number(data.stockMinimo),
+        Number(data.reorden),
+        data.observacion,
+        Number(data.incluyeItbis),
+        Number(data.precioVenta),
+        Number(data.precioCompra),
+        Number(data.idProveedor),
+        Number(data.creado_por),
+        Number(data.estado),
+      ],
+      (error, result, fields) => {
+        return error ? callback(error) : callback(null, result[0]);
+      }
+    );
+
+  } catch (error) {
+    console.log("error: ", error);
+  }
+};
+
+
+

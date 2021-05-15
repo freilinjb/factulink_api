@@ -1,4 +1,6 @@
-const { getProduct, getCategory, getSubCategory, getBrand, getPresentationUnid, registerProduct, getProductByID } = require("../models/product.model");
+const { getProduct, getCategory, getSubCategory, getBrand, getPresentationUnid, registerProduct, getProductByID,
+  updateProduct
+ } = require("../models/product.model");
 
 exports.getProduct = (req, res) => {
   let idProducto = null;
@@ -129,3 +131,27 @@ exports.getSubCategory = (req, res) => {
     }
   };
   
+  exports.updateProduct = async (req, res) => {
+    try {
+      const data = req.body;
+      //console.log('data: ', data.nombre1);
+
+      updateProduct(data, (error, resultado) => {
+        if (error) {
+          console.log('ERROR: ', error);
+          return res.status(500).json({
+            return: 1,
+            success: 0,
+            msg: error,
+          });
+        }
+  
+        return res.status(200).json({
+          success: 1,
+          data: resultado,
+        });
+      });
+    } catch (error) {
+        res.status(400).send(error);
+    }
+  };
