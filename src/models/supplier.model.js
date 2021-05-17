@@ -11,7 +11,7 @@ exports.getSupplier = async (idProveedor, callback) => {
         SELECT 
             p.idProveedor,
             COALESCE(rs.nombre,'') AS nombre,  
-            rs.descripcion AS razonSocial, 
+            rs.razonSocial AS razonSocial, 
             c.descripcion AS correo,
             t.descripcion AS telefono,
             c1.descripcion AS ciudad,

@@ -1,5 +1,4 @@
-const { connect } = require('../app');
-const { conection, connection } = require('../config/database');
+const { connection } = require('../config/database');
 
 exports.getCustomer = async (idCliente, callback) => {
     try {
@@ -27,7 +26,7 @@ exports.getCustomer = async (idCliente, callback) => {
           p.descripcion AS provincia,
           td.direccion,
           c.observacion,
-          CASE WHEN c.estado IS TRUE THEN 'activo' ELSE 'inactivo' END AS estado
+          CASE WHEN c.estado IS TRUE THEN TRUE ELSE FALSE END AS estado
            FROM cliente c
           INNER JOIN identificacion i ON i.idTercero = c.idTercero
           INNER JOIN razon_social rs ON rs.idTercero = c.idTercero
@@ -46,4 +45,73 @@ exports.getCustomer = async (idCliente, callback) => {
         console.log('error: ', error);
         return "Ah ocurrido un error del servidor";
     }
+}
+
+exports.saveCustomer = async (data, callback) => {
+  try {
+    connection.query(
+      `CALL registrarCliente (NULL, ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [
+        data.nombre,
+        data.razonSocial,
+        data.urlFoto,
+        data.idTipoIdentificacion,
+        data.identificacion,
+        data.tipoComprobante,
+        data.idVendedor,
+        data.correo,
+        data.telefono,
+        data.diasCredito,
+        data.limiteCredito,
+        data.aplicaDescuento,
+        data.descuento,
+        data.idProvincia,
+        data.idCiudad,
+        data.direccion,
+        data.observacion,
+        data.creado_por,
+        data.estado,
+      ],
+      (error, result, fields) => {
+        return error ? callback(error) : callback(null, result[0]);
+      }
+    )
+  } catch (error) {
+    console.log('Error: ', error);
+  }
+}
+
+exports.updateCustomer = async (data, callback) => {
+  try {
+    connection.query(
+      `CALL registrarCliente (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [
+        data.idCliente,
+        data.nombre,
+        data.razonSocial,
+        data.urlFoto,
+        data.idTipoIdentificacion,
+        data.identificacion,
+        data.tipoComprobante,
+        data.idVendedor,
+        data.correo,
+        data.telefono,
+        data.diasCredito,
+        data.limiteCredito,
+        data.aplicaDescuento,
+        data.descuento,
+        data.idProvincia,
+        data.idCiudad,
+        data.direccion,
+        data.observacion,
+        data.creado_por,
+        data.estado,
+      ],
+      (error, result, fields) => {
+        return error ? callback(error) : callback(null, result[0]);
+      }
+    )
+  } catch (error) {
+    console.log('Error: ', error);
+  }
 }

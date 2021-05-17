@@ -19,20 +19,16 @@ exports.validarInicioSesion = async (req, res, next) => {
         return res.status(400).json({ errors: errors.array() });
       }
     };
-  //next();
-
-  //console.log("asdasdf: ", body);
   next();
-
-  // return res.status(200).json({mensaje: "asdfasdf"});
 };
 
-const validarProducto = [body("idProducto")
+exports.updateProduct = [
+  body("idProducto")
 .notEmpty()
 .withMessage({
   message: "Debe espesificar el codigo del producto",
   errorCode: 1,
-}),
+}).isNumeric().withMessage("Es un campo numerico"),
 body("nombre")
 .notEmpty()
 .withMessage({
@@ -93,8 +89,3 @@ body("idSubCategoria").notEmpty().isNumeric().withMessage({
 message: "El campo de la categoria es obligatorio",
 errorCode: 1,
 })];
-
-
-module.exports = {
-  validarProducto
-}
