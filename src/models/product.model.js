@@ -1,42 +1,56 @@
 const { connection } = require("../config/database");
 
-exports.getProduct = async (idProducto, callback) => {
+exports.getProduct = async (data, callback) => {
   try {
     let condicion = null;
-    console.log('condicion: ', condicion);
-    condicion = idProducto ? `WHERE p.idProducto = ${idProducto}` : "";
-    console.log("condicion: ", condicion);
+    condicion = data.idProducto ? `WHERE p.idProducto = ${data.idProducto}` : "";
+    if(data.idProducto == null && (data.limit && data.offset)) {
+      condicion = ` LIMIT ${data.limit}  OFFSET ${data.offset} `;
+    }
+    console.log("condicion: ", data);
+    let total_page = 0;
+    connection.query("SELECT COUNT(v.idProducto) AS cantidad FROM producto_v v", [], async (error, results, fields) => {
+      total_page = results[0].cantidad;
 
-    connection.query(
-      `
-            SELECT p.idProducto,
-                p.codigo,
-                p.nombre,
-                COALESCE(m.descripcion,'') AS marca,
-                c.descripcion AS categoria,
-                s.descripcion AS subcategoria,
-                p.stockInicial,
-                p.stockMinimo,
-                p.reorden,
-                COALESCE((SELECT PV.precio FROM precio_venta pv WHERE pv.idProducto = p.idProducto ORDER BY pv.fecha DESC LIMIT 1),0) AS precioVenta,
-                COALESCE((SELECT pc.precio FROM precio_compra pc WHERE pc.idProducto = p.idProducto ORDER BY pc.fecha DESC LIMIT 1),0) AS precioCompra,
-                p.observacion,
-                CASE WHEN p.itbis IS TRUE THEN 'TRUE' ELSE 'FALSE' END AS incluyeItbis,
-                p.creado_en,
-                COALESCE(u.usuario,'-') AS creado_por,
-                CASE WHEN p.estado IS TRUE THEN 'activo' ELSE 'inactivo' END AS estado
-            FROM producto p 
-                INNER JOIN categoria c ON c.idCategoria = p.idCategoria
-                INNER JOIN subcategoria s ON s.idSubCategoria = p.idSubCategoria
-                LEFT JOIN marca m ON m.idMarca = p.idMarca
-                LEFT JOIN usuario u ON u.idUsuario = p.creado_por
-            ${condicion}
-        `,
-      [],
-      (error, results, fields) => {
-        return error ? callback(error) : callback(null, results);
-      }
-    );
+      connection.query(
+        `
+              SELECT p.idProducto,
+                  p.codigo,
+                  p.nombre,
+                  COALESCE(m.descripcion,'') AS marca,
+                  c.descripcion AS categoria,
+                  s.descripcion AS subcategoria,
+                  p.stockInicial,
+                  p.stockMinimo,
+                  p.reorden,
+                  COALESCE((SELECT PV.precio FROM precio_venta pv WHERE pv.idProducto = p.idProducto ORDER BY pv.fecha DESC LIMIT 1),0) AS precioVenta,
+                  COALESCE((SELECT pc.precio FROM precio_compra pc WHERE pc.idProducto = p.idProducto ORDER BY pc.fecha DESC LIMIT 1),0) AS precioCompra,
+                  p.observacion,
+                  CASE WHEN p.itbis IS TRUE THEN 'TRUE' ELSE 'FALSE' END AS incluyeItbis,
+                  p.creado_en,
+                  COALESCE(u.usuario,'-') AS creado_por,
+                  CASE WHEN p.estado IS TRUE THEN 'activo' ELSE 'inactivo' END AS estado
+              FROM producto p 
+                  INNER JOIN categoria c ON c.idCategoria = p.idCategoria
+                  INNER JOIN subcategoria s ON s.idSubCategoria = p.idSubCategoria
+                  LEFT JOIN marca m ON m.idMarca = p.idMarca
+                  LEFT JOIN usuario u ON u.idUsuario = p.creado_por
+              ${condicion}
+          `,
+        [],
+        (error, results, fields) => {
+          console.log('limit: ', data.limit);
+          total_page = data.idProducto != null ? Math.ceil(data.limit/data.limit) : 1;
+          return error ? callback(error) : callback(null, results, total_page);
+        }
+      );
+
+      return results[0].cantidad;
+    });
+
+    console.log('cantidad: ', total_page);
+
+    
   } catch (error) {
     console.error("error: ", error);
     return "Ah ocurrido un error";
@@ -163,10 +177,8 @@ exports.getPresentationUnid = async (callback) => {
 
 exports.registerProduct = async (data, callback) => {
   try {
-    const idProducto = data.idProducto != "" ? data.idProducto : "NULL";
-    console.log('data: ', data.idProducto);
     connection.query(
-      "CALL registrarProducto (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+      "CALL registrarProducto (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
       [
         data.codigo,
         data.nombre,
@@ -182,12 +194,38 @@ exports.registerProduct = async (data, callback) => {
         data.incluyeItbis,
         data.precioVenta,
         data.precioCompra,
-        data.idProveedor,
         data.creado_por,
         data.estado,
       ],
       (error, result, fields) => {
-        return error ? callback(error) : callback(null, result[0]);
+        if (error) {
+          return connection.rollback(() => {
+            throw error;
+          });
+        }
+
+        const idProducto = result[0][0].idProducto;
+        console.log('resultado2 : ', idProducto);
+        data.idProveedor.forEach((key) => {
+          connection.query('INSERT INTO producto_proveedor(idProducto, idProveedor) VALUES(?,?)',
+          [idProducto, key],
+          (error, result, fields) => {
+            if (error) {
+              return connection.rollback(() => {
+                throw error;
+              });
+            }
+            connection.commit((err) => {
+              if (err) {
+                return connection.rollback(() => {
+                  return callback(error); 
+                });
+              }
+            });
+
+          })
+        });
+         return error ? callback(error) : callback(null, result[0]);
       }
     );
 
@@ -201,7 +239,7 @@ exports.updateProduct = async (data, callback) => {
     // const idProducto = data.idProducto != "" ? data.idProducto : "NULL";
     console.log('updateProduct: ', data.incluyeItbis);
     connection.query(
-      "CALL registrarProducto (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+      "CALL registrarProducto (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
       [
         data.idProducto,
         data.codigo,
@@ -218,7 +256,6 @@ exports.updateProduct = async (data, callback) => {
         Number(data.incluyeItbis),
         Number(data.precioVenta),
         Number(data.precioCompra),
-        Number(data.idProveedor),
         Number(data.creado_por),
         Number(data.estado),
       ],
@@ -231,6 +268,20 @@ exports.updateProduct = async (data, callback) => {
     console.log("error: ", error);
   }
 };
+
+exports.getSupplierByProduct = async (idProducto, callback) => {
+  try {
+    connection.query(`SELECT pp.idProveedor AS id, COALESCE(rs.nombre, rs.razonSocial) AS nombre FROM producto_proveedor pp
+    INNER JOIN proveedor p ON p.idProveedor = pp.idProveedor
+    INNER JOIN razon_social rs ON rs.idTercero = p.idTercero
+    WHERE pp.idProducto = ?`,[idProducto],(error, results, fields) => {
+      return error ? callback(error) : callback(null, results);
+    })
+  } catch (error) {
+    console.log('Error: ', error);
+    return "Ah ocurrido un error interno";
+  }
+}
 
 
 
