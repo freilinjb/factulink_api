@@ -184,6 +184,7 @@ exports.getSubCategory = (req, res) => {
         });
       });
     } catch (error) {
+        console.log('error:', error);
         res.status(400).send(error);
     }
   };
@@ -191,7 +192,7 @@ exports.getSubCategory = (req, res) => {
   exports.updateProduct = async (req, res) => {
     try {
       const data = req.body;
-      //console.log('data: ', data.nombre1);
+      console.log('data: ', data);
 
       updateProduct(data, (error, resultado) => {
         if (error) {
@@ -209,6 +210,7 @@ exports.getSubCategory = (req, res) => {
         });
       });
     } catch (error) {
+        console.log('error: ', error);
         res.status(400).send(error);
     }
   };

@@ -31,70 +31,14 @@ router.get(
 
 router.post("/product", [
   checkToken,
-  body("nombre")
-    .notEmpty()
-    .withMessage({
-      message: "El nombre del producto es obligatorio",
-      errorCode: 1,
-    }),
-  body("idCategoria")
-    .notEmpty()
-    .withMessage({
-      message: "El campo de la categoria es obligatorio",
-      errorCode: 1,
-    })
-    .isNumeric(),
-  body("idSubCategoria")
-    .notEmpty()
-    .withMessage({
-      message: "El campo de la categoria es obligatorio",
-      errorCode: 1,
-    })
-    .isNumeric(),
-  body("stockInicial")
-    .notEmpty()
-    .withMessage({
-      message: "El campo del Stock Inicial es oblogatorio",
-      errorCode: 1,
-    })
-    .isNumeric(),
-  body("stockMinimo")
-    .notEmpty()
-    .withMessage({
-      message: "El campo del Stock Minimo es obligatorio",
-      errorCode: 1,
-    })
-    .isNumeric(),
-  body("reorden")
-    .notEmpty()
-    .withMessage({
-      message: "El punto de reorden es obligatorio",
-      errorCode: 1,
-    })
-    .isNumeric(),
-  body("precioVenta")
-    .notEmpty()
-    .withMessage({
-      message: "El punto de reorden es obligatorio",
-      errorCode: 1,
-    })
-    .isNumeric(),
-  body("precioCompra")
-    .notEmpty()
-    .withMessage({
-      message: "El punto de reorden es obligatorio",
-      errorCode: 1,
-    })
-    .isNumeric()
-    .withMessage({ message: "Este es un campo numerico", errorCode: 1 }),
-  body("idSubCategoria").notEmpty().isNumeric().withMessage({
-    message: "El campo de la categoria es obligatorio",
-    errorCode: 1,
-  }),
+    upload.single("productImag"),
+    validar.registerProduct,
   (req, res, next) => {
+    
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
+        console.log('error: ', errors.array([0]["msg"]));
       return res.status(400).json({ errors: errors.array([0]["msg"]) });
     }
     product.registerProduct(req, res, next);

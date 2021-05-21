@@ -177,25 +177,26 @@ exports.getPresentationUnid = async (callback) => {
 
 exports.registerProduct = async (data, callback) => {
   try {
+    console.log('data: ', data);
     connection.query(
       "CALL registrarProducto (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
       [
         data.codigo,
         data.nombre,
-        data.idCategoria,
-        data.idSubCategoria,
-        data.idMarca,
-        data.idUnidad,
+        Number(data.idCategoria),
+        Number(data.idSubCategoria),
+        Number(data.idMarca),
+        Number(data.idUnidad),
         data.descripcion,
-        data.stockInicial,
-        data.stockMinimo,
-        data.reorden,
+        Number(data.stockInicial),
+        Number(data.stockMinimo),
+        Number(data.reorden),
         data.observacion,
-        data.incluyeItbis,
-        data.precioVenta,
-        data.precioCompra,
-        data.creado_por,
-        data.estado,
+        Number(data.incluyeItbis),
+        Number(data.precioVenta),
+        Number(data.precioCompra),
+        Number(data.creado_por),
+        Number(data.estado),
       ],
       (error, result, fields) => {
         if (error) {
@@ -206,7 +207,9 @@ exports.registerProduct = async (data, callback) => {
 
         const idProducto = result[0][0].idProducto;
         console.log('resultado2 : ', idProducto);
-        data.idProveedor.forEach((key) => {
+        const proveedores = data.idProveedor.split(',');
+        proveedores.forEach((key) => {
+          console.log(`INSERT INTO producto_proveedor(idProducto, idProveedor) VALUES(${idProducto},${key})`);
           connection.query('INSERT INTO producto_proveedor(idProducto, idProveedor) VALUES(?,?)',
           [idProducto, key],
           (error, result, fields) => {
@@ -260,7 +263,28 @@ exports.updateProduct = async (data, callback) => {
         Number(data.estado),
       ],
       (error, result, fields) => {
-        return error ? callback(error) : callback(null, result[0]);
+        const idProducto = result[0][0].idProducto;
+        console.log('resultado2 : ', idProducto);
+        data.idProveedor.forEach((key) => {
+          connection.query('INSERT INTO producto_proveedor(idProducto, idProveedor) VALUES(?,?)',
+          [idProducto, key],
+          (error, result, fields) => {
+            if (error) {
+              return connection.rollback(() => {
+                throw error;
+              });
+            }
+            connection.commit((err) => {
+              if (err) {
+                return connection.rollback(() => {
+                  return callback(error); 
+                });
+              }
+            });
+
+          })
+        });
+         return error ? callback(error) : callback(null, result[0]);
       }
     );
 
