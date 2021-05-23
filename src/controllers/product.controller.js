@@ -175,9 +175,14 @@ exports.getSubCategory = (req, res) => {
 
   exports.registerProduct = async (req, res) => {
     try {
-      console.log("data: ", req.body);
+      // console.log("data: ", req.file);
       // const { data } = req.body;
       const data = req.body;
+      if(req.file.filename) {
+        data.urlFoto = `http://localhost:4000/public/img/product/${req.file.filename}`;
+      }
+
+      console.log('dataFoto:', data);
       registerProduct(data, (error, resultado) => {
         if (error) {
           console.log('ERROR: ', error);

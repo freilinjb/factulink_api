@@ -189,7 +189,7 @@ exports.registerProduct = async (data, callback) => {
   try {
     console.log("data: ", data);
     connection.query(
-      "CALL registrarProducto (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+      "CALL registrarProducto (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
       [
         data.codigo,
         data.nombre,
@@ -205,6 +205,7 @@ exports.registerProduct = async (data, callback) => {
         Number(data.incluyeItbis),
         Number(data.precioVenta),
         Number(data.precioCompra),
+        data.urlFoto ? data.urlFoto : '',
         Number(data.creado_por),
         Number(data.estado),
       ],
@@ -254,7 +255,7 @@ exports.updateProduct = async (data, callback) => {
     // const idProducto = data.idProducto != "" ? data.idProducto : "NULL";
     console.log("updateProduct: ", data.incluyeItbis);
     connection.query(
-      "CALL registrarProducto (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+      "CALL registrarProducto (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
       [
         data.idProducto,
         data.codigo,
@@ -271,6 +272,7 @@ exports.updateProduct = async (data, callback) => {
         Number(data.incluyeItbis),
         Number(data.precioVenta),
         Number(data.precioCompra),
+        data.urlFoto ? data.urlFoto : '',
         Number(data.creado_por),
         Number(data.estado),
       ],
