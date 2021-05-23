@@ -11,7 +11,10 @@ exports.getProduct = (req, res) => {
   console.log('req: prueba: ', req.query.page);
   data.idProducto = idProducto;
   data.page = req.query.page;
-  data.limit = 20;
+  data.limit = req.query.limit;
+  if(!data.limit) {
+    data.limit = 20;
+  }
   data.offset = (data.page -1 ) * data.limit;
   getProduct(data, (err, results, total_page) => {
     if (err) {
@@ -23,14 +26,21 @@ exports.getProduct = (req, res) => {
       });
     }
 
+    if(data.page) {
+      return res.status(200).json({
+        success: 1,
+        data: {
+          total_page : Math.ceil(total_page),
+          page_cout: results.length,
+          page_number: Number(data.page),
+          results: results,
+        },
+      });
+    } 
+
     return res.status(200).json({
       success: 1,
-      data: {
-        total_page : Math.ceil(total_page),
-        page_cout: results.length,
-        page_number: data.page,
-        results: results,
-      },
+      data: results
     });
   });
 };

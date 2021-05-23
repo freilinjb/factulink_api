@@ -3,17 +3,24 @@ const { connection } = require("../config/database");
 exports.getProduct = async (data, callback) => {
   try {
     let condicion = null;
-    condicion = data.idProducto ? `WHERE p.idProducto = ${data.idProducto}` : "";
-    if(data.idProducto == null && (data.limit && data.offset)) {
+    console.log(`prueba: ${data.limit}, ${data.offset}`);
+    condicion = data.idProducto
+      ? `WHERE p.idProducto = ${data.idProducto}`
+      : "";
+    if (data.idProducto == null && data.limit && data.offset >= 0) {
       condicion = ` LIMIT ${data.limit}  OFFSET ${data.offset} `;
     }
+    console.log("condicion2: ", condicion);
     console.log("condicion: ", data);
     let total_page = 0;
-    connection.query("SELECT COUNT(v.idProducto) AS cantidad FROM producto_v v", [], async (error, results, fields) => {
-      total_page = results[0].cantidad;
+    connection.query(
+      "SELECT COUNT(v.idProducto) AS cantidad FROM producto_v v",
+      [],
+      async (error, results, fields) => {
+        total_page = results[0].cantidad;
 
-      connection.query(
-        `
+        connection.query(
+          `
               SELECT p.idProducto,
                   p.codigo,
                   p.nombre,
@@ -37,20 +44,23 @@ exports.getProduct = async (data, callback) => {
                   LEFT JOIN usuario u ON u.idUsuario = p.creado_por
               ${condicion}
           `,
-        [],
-        (error, results, fields) => {
-          console.log('limit: ', data.limit);
-          total_page = data.idProducto != null ? Math.ceil(data.limit/data.limit) : 1;
-          return error ? callback(error) : callback(null, results, total_page);
-        }
-      );
+          [],
+          (error, results, fields) => {
+            console.log('idProduct: ', Math.ceil(total_page / data.limit));
+            total_page = data.idProducto == null ? Math.ceil(total_page / data.limit) : 1;
+            console.log("total_page: ", total_page);
 
-      return results[0].cantidad;
-    });
+            return error
+              ? callback(error)
+              : callback(null, results, total_page);
+          }
+        );
 
-    console.log('cantidad: ', total_page);
+        return total_page;
+      }
+    );
 
-    
+    console.log("cantidad: ", total_page);
   } catch (error) {
     console.error("error: ", error);
     return "Ah ocurrido un error";
@@ -177,7 +187,7 @@ exports.getPresentationUnid = async (callback) => {
 
 exports.registerProduct = async (data, callback) => {
   try {
-    console.log('data: ', data);
+    console.log("data: ", data);
     connection.query(
       "CALL registrarProducto (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
       [
@@ -206,32 +216,34 @@ exports.registerProduct = async (data, callback) => {
         }
 
         const idProducto = result[0][0].idProducto;
-        console.log('resultado2 : ', idProducto);
-        const proveedores = data.idProveedor.split(',');
+        console.log("resultado2 : ", idProducto);
+        const proveedores = data.idProveedor.split(",");
         proveedores.forEach((key) => {
-          console.log(`INSERT INTO producto_proveedor(idProducto, idProveedor) VALUES(${idProducto},${key})`);
-          connection.query('INSERT INTO producto_proveedor(idProducto, idProveedor) VALUES(?,?)',
-          [idProducto, key],
-          (error, result, fields) => {
-            if (error) {
-              return connection.rollback(() => {
-                throw error;
-              });
-            }
-            connection.commit((err) => {
-              if (err) {
+          console.log(
+            `INSERT INTO producto_proveedor(idProducto, idProveedor) VALUES(${idProducto},${key})`
+          );
+          connection.query(
+            "INSERT INTO producto_proveedor(idProducto, idProveedor) VALUES(?,?)",
+            [idProducto, key],
+            (error, result, fields) => {
+              if (error) {
                 return connection.rollback(() => {
-                  return callback(error); 
+                  throw error;
                 });
               }
-            });
-
-          })
+              connection.commit((err) => {
+                if (err) {
+                  return connection.rollback(() => {
+                    return callback(error);
+                  });
+                }
+              });
+            }
+          );
         });
-         return error ? callback(error) : callback(null, result[0]);
+        return error ? callback(error) : callback(null, result[0]);
       }
     );
-
   } catch (error) {
     console.log("error: ", error);
   }
@@ -240,7 +252,7 @@ exports.registerProduct = async (data, callback) => {
 exports.updateProduct = async (data, callback) => {
   try {
     // const idProducto = data.idProducto != "" ? data.idProducto : "NULL";
-    console.log('updateProduct: ', data.incluyeItbis);
+    console.log("updateProduct: ", data.incluyeItbis);
     connection.query(
       "CALL registrarProducto (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
       [
@@ -264,30 +276,30 @@ exports.updateProduct = async (data, callback) => {
       ],
       (error, result, fields) => {
         const idProducto = result[0][0].idProducto;
-        console.log('resultado2 : ', idProducto);
+        console.log("resultado2 : ", idProducto);
         data.idProveedor.forEach((key) => {
-          connection.query('INSERT INTO producto_proveedor(idProducto, idProveedor) VALUES(?,?)',
-          [idProducto, key],
-          (error, result, fields) => {
-            if (error) {
-              return connection.rollback(() => {
-                throw error;
-              });
-            }
-            connection.commit((err) => {
-              if (err) {
+          connection.query(
+            "INSERT INTO producto_proveedor(idProducto, idProveedor) VALUES(?,?)",
+            [idProducto, key],
+            (error, result, fields) => {
+              if (error) {
                 return connection.rollback(() => {
-                  return callback(error); 
+                  throw error;
                 });
               }
-            });
-
-          })
+              connection.commit((err) => {
+                if (err) {
+                  return connection.rollback(() => {
+                    return callback(error);
+                  });
+                }
+              });
+            }
+          );
         });
-         return error ? callback(error) : callback(null, result[0]);
+        return error ? callback(error) : callback(null, result[0]);
       }
     );
-
   } catch (error) {
     console.log("error: ", error);
   }
@@ -295,17 +307,18 @@ exports.updateProduct = async (data, callback) => {
 
 exports.getSupplierByProduct = async (idProducto, callback) => {
   try {
-    connection.query(`SELECT pp.idProveedor AS id, COALESCE(rs.nombre, rs.razonSocial) AS nombre FROM producto_proveedor pp
-    INNER JOIN proveedor p ON p.idProveedor = pp.idProveedor
-    INNER JOIN razon_social rs ON rs.idTercero = p.idTercero
-    WHERE pp.idProducto = ?`,[idProducto],(error, results, fields) => {
-      return error ? callback(error) : callback(null, results);
-    })
+    connection.query(
+      `SELECT pp.idProveedor AS id, COALESCE(rs.nombre, rs.razonSocial) AS nombre FROM producto_proveedor pp
+        INNER JOIN proveedor p ON p.idProveedor = pp.idProveedor
+        INNER JOIN razon_social rs ON rs.idTercero = p.idTercero
+        WHERE pp.idProducto = ?`,
+      [idProducto],
+      (error, results, fields) => {
+        return error ? callback(error) : callback(null, results);
+      }
+    );
   } catch (error) {
-    console.log('Error: ', error);
+    console.log("Error: ", error);
     return "Ah ocurrido un error interno";
   }
-}
-
-
-
+};

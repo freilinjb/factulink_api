@@ -5,6 +5,7 @@ const { checkToken } = require("../auth/token_validation");
 const { upload } = require("../helpers");
 
 const validar = require('../middlewares/validate');
+const {validateAddProduct} = require('../middlewares/validateProduct');
 const product = require("../controllers/product.controller");
 
 router.post("/uploads", upload.single("productImag"), (req, res, next) => {
@@ -32,7 +33,7 @@ router.get(
 router.post("/product", [
   checkToken,
     upload.single("productImag"),
-    validar.registerProduct,
+    validateAddProduct,
   (req, res, next) => {
     
     const errors = validationResult(req);
