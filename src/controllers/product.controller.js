@@ -16,7 +16,7 @@ exports.getProduct = (req, res) => {
     data.limit = 20;
   }
   data.offset = (data.page -1 ) * data.limit;
-  getProduct(data, (err, results, total_page) => {
+  getProduct(data, (err, results, total_page, total_rows) => {
     if (err) {
       console.log('error: ', err);
       return res.status(500).json({
@@ -33,6 +33,7 @@ exports.getProduct = (req, res) => {
           total_page : Math.ceil(total_page),
           page_cout: results.length,
           page_number: Number(data.page),
+          total_rows: Number(total_rows),
           results: results,
         },
       });
@@ -91,7 +92,7 @@ exports.getProductByID = (req, res) => {
       if(results.length > 0) {
         resultado = results[0];
         if(resultSupplier.length > 0) {
-          resultado.proveedores = {resultSupplier};
+          resultado.proveedores = resultSupplier;
         } else {
            resultado.proveedores = [];
         }

@@ -13,15 +13,17 @@ exports.getProduct = async (data, callback) => {
     console.log("condicion2: ", condicion);
     console.log("condicion: ", data);
     let total_page = 0;
+    let total_rows = 0;
     connection.query(
       "SELECT COUNT(v.idProducto) AS cantidad FROM producto_v v",
       [],
       async (error, results, fields) => {
-        total_page = results[0].cantidad;
-
+       // total_page = results[0].cantidad;
+        total_rows = results[0].cantidad;
         connection.query(
           `
               SELECT p.idProducto,
+                  COALESCE((SELECT pu.urlFoto FROM producto_urlfoto pu WHERE pu.idProducto = p.idProducto LIMIT 1),NULL) AS urlFoto,
                   p.codigo,
                   p.nombre,
                   COALESCE(m.descripcion,'') AS marca,
@@ -46,13 +48,14 @@ exports.getProduct = async (data, callback) => {
           `,
           [],
           (error, results, fields) => {
-            console.log('idProduct: ', Math.ceil(total_page / data.limit));
-            total_page = data.idProducto == null ? Math.ceil(total_page / data.limit) : 1;
-            console.log("total_page: ", total_page);
+            console.log('idProduct: ', Math.ceil(total_rows / data.limit));
+            
+            total_page = data.idProducto == null ? Math.ceil(total_rows / data.limit) : 1;
+            console.log("total_page: ", total_rows);
 
             return error
               ? callback(error)
-              : callback(null, results, total_page);
+              : callback(null, results, total_page, total_rows);
           }
         );
 
@@ -75,6 +78,7 @@ exports.getProductByID = async (idProducto, callback) => {
     // console.log("condicion: ", condicion);
     connection.query(
       `SELECT p.idProducto,
+          COALESCE((SELECT pu.urlFoto FROM producto_urlfoto pu WHERE pu.idProducto = p.idProducto LIMIT 1),NULL) AS urlFoto,
           p.codigo,
           p.nombre,
           COALESCE(m.idMarca,0) AS idMarca,
@@ -279,26 +283,29 @@ exports.updateProduct = async (data, callback) => {
       (error, result, fields) => {
         const idProducto = result[0][0].idProducto;
         console.log("resultado2 : ", idProducto);
-        data.idProveedor.forEach((key) => {
-          connection.query(
-            "INSERT INTO producto_proveedor(idProducto, idProveedor) VALUES(?,?)",
-            [idProducto, key],
-            (error, result, fields) => {
-              if (error) {
-                return connection.rollback(() => {
-                  throw error;
-                });
-              }
-              connection.commit((err) => {
-                if (err) {
+        if(data.idProveedor.length > 0 ) {
+          data.idProveedor.forEach((key) => {
+            connection.query(
+              "INSERT INTO producto_proveedor(idProducto, idProveedor) VALUES(?,?)",
+              [idProducto, key],
+              (error, result, fields) => {
+                if (error) {
                   return connection.rollback(() => {
-                    return callback(error);
+                    throw error;
                   });
                 }
-              });
-            }
-          );
-        });
+                connection.commit((err) => {
+                  if (err) {
+                    return connection.rollback(() => {
+                      return callback(error);
+                    });
+                  }
+                });
+              }
+            );
+          });
+        }
+        
         return error ? callback(error) : callback(null, result[0]);
       }
     );
@@ -310,7 +317,7 @@ exports.updateProduct = async (data, callback) => {
 exports.getSupplierByProduct = async (idProducto, callback) => {
   try {
     connection.query(
-      `SELECT pp.idProveedor AS id, COALESCE(rs.nombre, rs.razonSocial) AS nombre FROM producto_proveedor pp
+      `SELECT pp.idProveedor AS value, COALESCE(rs.nombre, rs.razonSocial) AS label FROM producto_proveedor pp
         INNER JOIN proveedor p ON p.idProveedor = pp.idProveedor
         INNER JOIN razon_social rs ON rs.idTercero = p.idTercero
         WHERE pp.idProducto = ?`,
