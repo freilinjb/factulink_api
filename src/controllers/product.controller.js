@@ -209,7 +209,7 @@ exports.getSubCategory = (req, res) => {
     try {
       const data = req.body;
       console.log('data: ', data);
-      if(req.file.filename) {
+      if(req.file) {
         data.urlFoto = `http://localhost:4000/public/img/product/${req.file.filename}`;
       }
 

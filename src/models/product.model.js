@@ -283,12 +283,17 @@ exports.updateProduct = async (data, callback) => {
       (error, result, fields) => {
         const idProducto = result[0][0].idProducto;
         console.log("resultado2 : ", idProducto);
-        if(data.idProveedor.length > 0 ) {
-          data.idProveedor.forEach((key) => {
+        const proveedores = data.idProveedor.split(',');
+        console.log('proveedoresFor: ', proveedores);
+        if(proveedores.length > 0 ) {
+          proveedores.forEach((key) => {
+            console.log('ForEach: ', key);
+
             connection.query(
               "INSERT INTO producto_proveedor(idProducto, idProveedor) VALUES(?,?)",
-              [idProducto, key],
+              [idProducto, Number(key)],
               (error, result, fields) => {
+                console.log('registros alterados: ', result);
                 if (error) {
                   return connection.rollback(() => {
                     throw error;
@@ -296,6 +301,7 @@ exports.updateProduct = async (data, callback) => {
                 }
                 connection.commit((err) => {
                   if (err) {
+                    console.log('errorcommit: ', err);
                     return connection.rollback(() => {
                       return callback(error);
                     });
