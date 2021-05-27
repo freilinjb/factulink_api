@@ -257,7 +257,7 @@ exports.registerProduct = async (data, callback) => {
 exports.updateProduct = async (data, callback) => {
   try {
     // const idProducto = data.idProducto != "" ? data.idProducto : "NULL";
-    console.log("updateProduct: ", data.incluyeItbis);
+    console.log("updateProduct: ", data);
     connection.query(
       "CALL registrarProducto (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
       [

@@ -209,6 +209,9 @@ exports.getSubCategory = (req, res) => {
     try {
       const data = req.body;
       console.log('data: ', data);
+      if(req.file.filename) {
+        data.urlFoto = `http://localhost:4000/public/img/product/${req.file.filename}`;
+      }
 
       updateProduct(data, (error, resultado) => {
         if (error) {
