@@ -52,3 +52,9 @@
     "creado_por": 1,
     "estado": 1
 }
+
+/**
+ * @description Realizando busqueda de productos
+ * @url http://localhost:4000/api/product?page=2&search=hola mundo
+ * @method get
+ */

@@ -11,7 +11,9 @@ exports.getProduct = (req, res) => {
   console.log('req: prueba: ', req.query.page);
   data.idProducto = idProducto;
   data.page = req.query.page;
+  data.search = req.query.search;
   data.limit = req.query.limit;
+  console.log('data: ', data);
   if(!data.limit) {
     data.limit = 20;
   }

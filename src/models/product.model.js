@@ -2,49 +2,62 @@ const { connection } = require("../config/database");
 
 exports.getProduct = async (data, callback) => {
   try {
-    let condicion = null;
-    console.log(`prueba: ${data.limit}, ${data.offset}`);
-    condicion = data.idProducto
-      ? `WHERE p.idProducto = ${data.idProducto}`
-      : "";
+    let condicion = '';
+    let search = '';
+
+    // console.log(`prueba: ${data.limit}, ${data.offset}`);
+
+
+    condicion = data.idProducto ? `WHERE p.idProducto = ${data.idProducto}`   : "";
     if (data.idProducto == null && data.limit && data.offset >= 0) {
-      condicion = ` LIMIT ${data.limit}  OFFSET ${data.offset} `;
+
+      //Valida si es una busqueda que se va arelizar
+    if(data.search) {
+      search = ` WHERE concat(p.codigo,p.nombre, p.marca, p.categoria, p.subcategoria, p.stockInicial,p.stockMinimo,p.reorden,p.precioVenta, p.precioCompra, p.incluyeItbis,p.creado_por) LIKE '%${data.search}%' `; 
     }
-    console.log("condicion2: ", condicion);
-    console.log("condicion: ", data);
+      condicion += ` LIMIT ${data.limit}  OFFSET ${data.offset} `;
+    }
+
+    
+    // console.log("condicion2: ", condicion);
+    // console.log("search: ", search);
+    // console.log("condicion: ", condicion);
     let total_page = 0;
     let total_rows = 0;
     connection.query(
-      "SELECT COUNT(v.idProducto) AS cantidad FROM producto_v v",
+      `SELECT COUNT(p.idProducto) AS cantidad FROM producto_v p ${search}`,
       [],
       async (error, results, fields) => {
        // total_page = results[0].cantidad;
+       if(results.length > 0) {
+         console.log('prueba: ', results);
         total_rows = results[0].cantidad;
+       } else {
+        total_rows = 0;
+        console.log('length: ', results);
+
+       }
+        console.log('cantidad total: ', total_rows);
         connection.query(
-          `
-              SELECT p.idProducto,
-                  COALESCE((SELECT pu.urlFoto FROM producto_urlfoto pu WHERE pu.idProducto = p.idProducto LIMIT 1),NULL) AS urlFoto,
-                  p.codigo,
-                  p.nombre,
-                  COALESCE(m.descripcion,'') AS marca,
-                  c.descripcion AS categoria,
-                  s.descripcion AS subcategoria,
-                  p.stockInicial,
-                  p.stockMinimo,
-                  p.reorden,
-                  COALESCE((SELECT PV.precio FROM precio_venta pv WHERE pv.idProducto = p.idProducto ORDER BY pv.fecha DESC LIMIT 1),0) AS precioVenta,
-                  COALESCE((SELECT pc.precio FROM precio_compra pc WHERE pc.idProducto = p.idProducto ORDER BY pc.fecha DESC LIMIT 1),0) AS precioCompra,
-                  p.observacion,
-                  CASE WHEN p.itbis IS TRUE THEN 'TRUE' ELSE 'FALSE' END AS incluyeItbis,
-                  p.creado_en,
-                  COALESCE(u.usuario,'-') AS creado_por,
-                  CASE WHEN p.estado IS TRUE THEN 'activo' ELSE 'inactivo' END AS estado
-              FROM producto p 
-                  INNER JOIN categoria c ON c.idCategoria = p.idCategoria
-                  INNER JOIN subcategoria s ON s.idSubCategoria = p.idSubCategoria
-                  LEFT JOIN marca m ON m.idMarca = p.idMarca
-                  LEFT JOIN usuario u ON u.idUsuario = p.creado_por
-              ${condicion}
+          `SELECT 
+            p.idProducto,
+            p.urlFoto,
+            p.codigo,
+            p.nombre,
+            p.marca,
+            p.categoria,
+            p.subcategoria,
+            p.stockInicial,
+            p.stockMinimo,
+            p.reorden,
+            p.precioVenta,
+            p.precioCompra,
+            p.observacion,
+            p.incluyeItbis,
+            p.creado_en,
+            p.creado_por,
+            p.estado FROM  producto_v p
+              ${search}  ${condicion}
           `,
           [],
           (error, results, fields) => {
@@ -282,33 +295,35 @@ exports.updateProduct = async (data, callback) => {
       ],
       (error, result, fields) => {
         const idProducto = result[0][0].idProducto;
-        console.log("resultado2 : ", idProducto);
+        // console.log("resultado2 : ", idProducto);
         const proveedores = data.idProveedor.split(',');
-        console.log('proveedoresFor: ', proveedores);
+        // console.log('proveedoresFor: ', proveedores);
         if(proveedores.length > 0 ) {
           proveedores.forEach((key) => {
-            console.log('ForEach: ', key);
+            // console.log('ForEach: ', key);
 
-            connection.query(
-              "INSERT INTO producto_proveedor(idProducto, idProveedor) VALUES(?,?)",
-              [idProducto, Number(key)],
-              (error, result, fields) => {
-                console.log('registros alterados: ', result);
-                if (error) {
-                  return connection.rollback(() => {
-                    throw error;
-                  });
-                }
-                connection.commit((err) => {
-                  if (err) {
-                    console.log('errorcommit: ', err);
+            if(key != '' && key != null) {
+              connection.query(
+                "INSERT INTO producto_proveedor(idProducto, idProveedor) VALUES(?,?)",
+                [idProducto, Number(key)],
+                (error, result, fields) => {
+                  console.log('registros alterados: ', result);
+                  if (error) {
                     return connection.rollback(() => {
-                      return callback(error);
+                      throw error;
                     });
                   }
-                });
-              }
-            );
+                  connection.commit((err) => {
+                    if (err) {
+                      console.log('errorcommit: ', err);
+                      return connection.rollback(() => {
+                        return callback(error);
+                      });
+                    }
+                  });
+                }
+              );
+            }
           });
         }
         
