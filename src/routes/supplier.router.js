@@ -9,4 +9,6 @@ router.get(
     supplier.getSupplier
 );
 
+router.get('/supplier/:idProveedor', checkToken, supplier.getSupplierByID);
+
 module.exports = router;
