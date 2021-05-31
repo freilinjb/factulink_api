@@ -82,14 +82,18 @@ exports.getSupplierByID = async (idProveedor, callback) => {
       [idProveedor],
       (error, results, fields) => {
         return error ? callback(error) : callback(null, results);
-      }
-      )
+      })
     } catch (error) {
         console.error("error: ", error);
         return "Ah ocurrido un error";
     }
 }
 
-
-
-
+exports.addSupplier = async (data, callback) => {
+    try {
+        console.log('data: ', data);
+        connection.query(`CALL registrarProveedor (NULL,?,?,?,?,?)`)
+    } catch (error) {
+        console.log('Error: ', error);
+    }
+}

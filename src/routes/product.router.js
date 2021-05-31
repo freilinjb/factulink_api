@@ -4,8 +4,8 @@ const { body, validationResult } = require("express-validator");
 const { checkToken } = require("../auth/token_validation");
 const { upload } = require("../helpers");
 
-const validar = require('../middlewares/validate');
-const {validateAddProduct} = require('../middlewares/validateProduct');
+const validar = require("../middlewares/validate");
+const { validateAddProduct } = require("../middlewares/validateProduct");
 const product = require("../controllers/product.controller");
 
 router.post("/uploads", upload.single("productImag"), (req, res, next) => {
@@ -32,14 +32,13 @@ router.get(
 
 router.post("/product", [
   checkToken,
-    upload.single("productImag"),
-    validateAddProduct,
+  upload.single("productImag"),
+  validateAddProduct,
   (req, res, next) => {
-    
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        console.log('error: ', errors.array([0]["msg"]));
+      console.log("error: ", errors.array([0]["msg"]));
       return res.status(400).json({ errors: errors.array([0]["msg"]) });
     }
     product.registerProduct(req, res, next);
@@ -48,14 +47,13 @@ router.post("/product", [
 
 router.put("/product", [
   checkToken,
-    upload.single("productImag"),
-    validar.updateProduct,
+  upload.single("productImag"),
+  validar.updateProduct,
   (req, res, next) => {
-    
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        console.log('error: ', errors.array([0]["msg"]));
+      console.log("error: ", errors.array([0]["msg"]));
       return res.status(400).json({ errors: errors.array([0]["msg"]) });
     }
     product.updateProduct(req, res, next);

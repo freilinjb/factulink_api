@@ -66,5 +66,36 @@ exports.getSupplierByID = (req, res) => {
        data: results,
     });
   })
+}
 
+exports.addSupplier = async (req, res) => {
+  try {
+    const data = req.body;
+    if(req.file) {
+      data.urlFoto = `http://localhost:4000/public/img/product/${req.file.filename}`;
+    }
+
+    supplier.addSupplier(data, (error, results) => {
+      if(error) {
+        console.log('Error: ', error);
+        return res.status(500).json({
+          success: 0,
+          msg: "Ah ocurrido un error interno",
+        });
+      }
+      return res.status(200).json({
+        success: 1,
+        data: results
+      });
+    });
+
+  } catch (error) {
+    console.log('Error: ', error);
+    res.status(500).json({
+      error: 1,
+      data: {
+        msg: "Ah ocurrido un error interno",
+      }
+    })
+  }
 }
