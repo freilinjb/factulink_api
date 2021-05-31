@@ -2,7 +2,7 @@ const router = require("express").Router();
 const { validationResult } = require("express-validator");
 
 const { checkToken } = require("../auth/token_validation");
-const { validateSupplier } = require("../middlewares/validateSupplier");
+const { validateAddSupplier } = require("../middlewares/validateSupplier");
 
 const supplier = require("../controllers/supplier.controller");
 const { upload } = require("../helpers");
@@ -14,7 +14,7 @@ router.get("/supplier/:idProveedor", checkToken, supplier.getSupplierByID);
 router.post('/supplier',[
     checkToken,
     upload.single("img"),
-    validateSupplier,
+    validateAddSupplier,
     (req, res, next) => {
         const errors = validationResult(req);
         if(!errors.isEmpty()) {

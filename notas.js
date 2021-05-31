@@ -58,3 +58,23 @@
  * @url http://localhost:4000/api/product?page=2&search=hola mundo
  * @method get
  */
+
+
+/**
+ * @description Registrar proveedor
+ * @url http://localhost:4000/api/supplier
+ * @method post
+ */
+ {
+    "nombre": "SPIDERMAN",
+    "razonSocial": "SPIDERMAN",
+    "rnc" : "03106484684",
+    "correo": "spiderman@spiderman.com",
+    "telefono": "849-565-4444",
+    "idProvincia": 1,
+    "idCiudad": 1,
+    "direccion": "Villa Progreso, La Herradura",
+    "observacion": "Hola muindi",
+    "creado_por": 1,
+    "estado": 1
+}

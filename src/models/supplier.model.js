@@ -79,7 +79,7 @@ exports.getSupplierByID = async (idProveedor, callback) => {
         P.creado_en,
         CASE WHEN p.estado = TRUE THEN 1 ELSE 0 END AS estado
       FROM proveedor_v p  WHERE p.idProveedor = ?`,
-      [idProveedor],
+      [idProveedor,],
       (error, results, fields) => {
         return error ? callback(error) : callback(null, results);
       })
@@ -92,7 +92,23 @@ exports.getSupplierByID = async (idProveedor, callback) => {
 exports.addSupplier = async (data, callback) => {
     try {
         console.log('data: ', data);
-        connection.query(`CALL registrarProveedor (NULL,?,?,?,?,?)`)
+        connection.query(`CALL registrarProveedor (NULL,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        [
+            data.img ? data.img : '',
+            data.nombre,
+            data.razonSocial,
+            data.rnc,
+            data.correo,
+            data.telefono,
+            Number(data.idProvincia),
+            Number(data.idCiudad),
+            data.direccion,
+            data.observacion,
+            Number(data.creado_por),
+            Number(data.estado)],
+        (error, result, fields) => {
+            return error ? callback(error) : callback(null, result[0]);
+        });
     } catch (error) {
         console.log('Error: ', error);
     }
