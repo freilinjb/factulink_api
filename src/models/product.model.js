@@ -13,15 +13,14 @@ exports.getProduct = async (data, callback) => {
 
       //Valida si es una busqueda que se va arelizar
     if(data.search) {
+
+      data.search = data.search.trim();
       search = ` WHERE concat(p.codigo,p.nombre, p.marca, p.categoria, p.subcategoria, p.stockInicial,p.stockMinimo,p.reorden,p.precioVenta, p.precioCompra, p.incluyeItbis,p.creado_por) LIKE '%${data.search}%' `; 
     }
       condicion += ` LIMIT ${data.limit}  OFFSET ${data.offset} `;
     }
 
     
-    // console.log("condicion2: ", condicion);
-    // console.log("search: ", search);
-    // console.log("condicion: ", condicion);
     let total_page = 0;
     let total_rows = 0;
     connection.query(

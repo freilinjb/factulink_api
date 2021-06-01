@@ -99,3 +99,38 @@ exports.addSupplier = async (req, res) => {
     })
   }
 }
+
+exports.updateSupplier = async (req, res) => {
+  try {
+    const data = req.body;
+    console.log('Data: ', data);
+    if(req.file) {
+      data.img = `http://localhost:4000/public/img/product/${req.file.filename}`;
+    }
+
+    supplier.updateSupplier(data, (error, result) => {
+      if(error) {
+        console.log('Error: ', error);
+        return res.status(500).json({
+          error: 1,
+          data: {
+            msg: "Ah ocurrido un error interno",
+          }
+        });
+      }
+
+      return res.status(200).json({
+        success: 1,
+        data: result,
+      });
+    })
+  } catch (error) {
+    console.log('ERROR: ', error);
+    return res.status(500).json({
+      error: 1,
+      data: {
+        msg: "Ah ocurrido un error interno",
+      }
+    })
+  }
+}

@@ -219,10 +219,11 @@ exports.getSubCategory = (req, res) => {
         if (error) {
           console.log('ERROR: ', error);
           return res.status(500).json({
-            return: 1,
-            success: 0,
-            msg: error,
-          });
+            error: 1,
+            data: {
+              msg: "Ah ocurrido un error interno",
+            }
+          })
         }
   
         return res.status(200).json({

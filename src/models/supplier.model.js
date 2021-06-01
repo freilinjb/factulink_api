@@ -113,3 +113,29 @@ exports.addSupplier = async (data, callback) => {
         console.log('Error: ', error);
     }
 }
+
+exports.addSupplier = async (data, callback) => {
+    try {
+        console.log('data: ', data);
+        connection.query(`CALL registrarProveedor (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        [
+            data.idProveedor,
+            data.img ? data.img : '',
+            data.nombre,
+            data.razonSocial,
+            data.rnc,
+            data.correo,
+            data.telefono,
+            Number(data.idProvincia),
+            Number(data.idCiudad),
+            data.direccion,
+            data.observacion,
+            Number(data.creado_por),
+            Number(data.estado)],
+        (error, result, fields) => {
+            return error ? callback(error) : callback(null, result[0]);
+        });
+    } catch (error) {
+        console.log('Error: ', error);
+    }
+}
