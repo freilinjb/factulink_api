@@ -46,8 +46,8 @@ exports.getSupplier = async (data, callback) => {
                 [], 
                 (error, results, fields) => {
                     console.log('idProveedor: ', Math.ceil(total_rows/data.limit));
-                    total_page = data.idProveedor = null ? Math.ceil(total_rows / data.limit) : 1;
-                    console.log('total_page: ', total_rows);
+                    total_page = data.idProveedor == null ? Math.ceil(total_rows / data.limit) : 1;
+                    console.log('total_page2: ', data.idProveedor);
 
                     return error ? callback(error) : callback(null, results, total_page, total_rows);
                 });
