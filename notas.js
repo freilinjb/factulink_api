@@ -78,3 +78,11 @@
     "creado_por": 1,
     "estado": 1
 }
+
+/**
+ * @description Consultando ciudades
+ * @url http://localhost:4000/api/city/1
+ * @method post
+ */
+
+
