@@ -85,4 +85,10 @@
  * @method post
  */
 
+/**
+ * @description Consultando provincia
+ * @url  http://localhost:4000/api/province/4
+ * @method post
+ */
+
 
