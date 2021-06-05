@@ -71,7 +71,7 @@ exports.addSupplier = async (req, res) => {
   try {
     const data = req.body;
     if(req.file) {
-      data.urlFoto = `http://localhost:4000/public/img/product/${req.file.filename}`;
+      data.img = `http://localhost:4000/public/img/supplier/${req.file.filename}`;
     }
 
     supplier.addSupplier(data, (error, results) => {

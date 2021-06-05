@@ -10,7 +10,7 @@ const product = require("../controllers/product.controller");
 
 router.post("/uploads", upload.single("productImag"), (req, res, next) => {
   try {
-    console.log("asdfa: ", req.body);
+    // console.log("asdfa: ", req.body);
   } catch (error) {
     console.log(error);
   }
