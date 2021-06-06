@@ -1,4 +1,13 @@
 const multer = require('multer');
+const { verify } = require('jsonwebtoken');
+
+/**
+ * CONSULTAR EL ID DEL USAURIO QUE REALIZA LA CONSULTA, QUE ESTA EN EL TOKEN
+ */
+const getUserByToken = (token) => {
+  token = token.replace("Bearer ", "");
+    return verify(token,"qw1234").result.idUsuario;
+}
 
 const storage = multer.diskStorage({
     destination: (req, file, callback) => {
@@ -31,5 +40,6 @@ const upload = multer({
 module.exports = {
     storage,
     fileFilterImg,
-    upload
+    upload,
+    getUserByToken
 }

@@ -29,7 +29,7 @@ exports.auth = async (req, res, next) => {
 
       return res.json({
         success: 1,
-        message: "authentication siccessfully",
+        message: "authentication successfully",
         token: jsonToken,
         auth: true,
         data: {

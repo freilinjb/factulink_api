@@ -1,14 +1,16 @@
 const supplier = require("../models/supplier.model");
+const helper = require('../helpers');
 
 exports.getSupplier = (req, res) => {
+  
   let idProveedor = req.body.idProveedor ? req.body.idProveedor : null;
   let data = {};
-  console.log('getSupplier: ', idProveedor);
+  // console.log('getSupplier: ', idProveedor);
   data.idProveedor = idProveedor;
   data.page = req.query.page;
   data.search = req.query.search;
   data.limit = req.query.limit;
-  console.log('data: ', data);
+  // console.log('data: ', data);
   //Si no pasa, le asigna por defecto 20
   if(!data.limit) {
     data.limit = 20;
@@ -69,7 +71,11 @@ exports.getSupplierByID = (req, res) => {
 
 exports.addSupplier = async (req, res) => {
   try {
+    const idUsuario = helper.getUserByToken(req.headers['authorization']);
+    // console.log('prueba: ', idUsuario);
+
     const data = req.body;
+    data.creado_por = idUsuario;
     if(req.file) {
       data.img = `http://localhost:4000/public/img/supplier/${req.file.filename}`;
     }
