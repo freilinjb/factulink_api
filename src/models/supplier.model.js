@@ -9,7 +9,8 @@ exports.getSupplier = async (data, callback) => {
         // condicion = (idProveedor) ? ` WHERE p.idProveedor = ${idProveedor}` : '';
         if(data.idProveedor == null && data.limit && data.offset >= 0) {
             if(data.search) {
-                search = ` WHERE CONCAT(p.nombre, p.razonSocial, p.correo,p.telefono, p.ciudad) LIKE '%${search}%'`;
+                data.search = data.search.trim();
+                search = ` WHERE CONCAT(p.nombre, p.razonSocial, p.correo,p.telefono, p.ciudad) LIKE '%${data.search}%'`;
             }
             condicion += ` LIMIT ${data.limit}  OFFSET ${data.offset} `;
         }
@@ -17,6 +18,7 @@ exports.getSupplier = async (data, callback) => {
         let total_page = 0;
         let total_rows = 0;
 
+        console.log('busqueda: ', search);
         console.log('condicion: ', condicion);
         connection.query(
             `SELECT COUNT(p.idProveedor) AS cantidad FROM proveedor_v p ${search}`,
@@ -35,6 +37,8 @@ exports.getSupplier = async (data, callback) => {
                 connection.query(`
                     SELECT P.idProveedor,
                         COALESCE(p.nombre, p.razonSocial) AS nombre,
+                        p.urlFoto,
+                        p.RNC,
                         p.correo,
                         p.telefono,
                         p.ciudad,
@@ -67,6 +71,7 @@ exports.getSupplierByID = async (idProveedor, callback) => {
         connection.query(`SELECT P.idProveedor,
         p.nombre, 
         p.razonSocial,
+        p.RNC,
         p.correo,
         p.telefono,
         p.idCiudad,
@@ -114,7 +119,7 @@ exports.addSupplier = async (data, callback) => {
     }
 }
 
-exports.addSupplier = async (data, callback) => {
+exports.updateSupplier = async (data, callback) => {
     try {
         console.log('data: ', data);
         connection.query(`CALL registrarProveedor (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
