@@ -72,7 +72,6 @@ exports.getSupplierByID = (req, res) => {
 exports.addSupplier = async (req, res) => {
   try {
     const idUsuario = helper.getUserByToken(req.headers['authorization']);
-    // console.log('prueba: ', idUsuario);
 
     const data = req.body;
     data.creado_por = idUsuario;

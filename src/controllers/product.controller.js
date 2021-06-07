@@ -1,6 +1,5 @@
-const { getProduct, getCategory, getSubCategory, getBrand, getPresentationUnid, registerProduct, getProductByID,
-  updateProduct, getSupplierByProduct
- } = require("../models/product.model");
+const product = require("../models/product.model");
+const helper = require('../helpers');
 
 exports.getProduct = (req, res) => {
   let idProducto = null;
@@ -18,7 +17,7 @@ exports.getProduct = (req, res) => {
     data.limit = 20;
   }
   data.offset = (data.page -1 ) * data.limit;
-  getProduct(data, (err, results, total_page, total_rows) => {
+  product.getProduct(data, (err, results, total_page, total_rows) => {
     if (err) {
       console.log('error: ', err);
       return res.status(500).json({
@@ -51,7 +50,7 @@ exports.getProduct = (req, res) => {
 exports.getAllProduct = (req, res) => {
   let idProducto = null;
   idProducto = req.params.idProducto ? req.params.idProducto : null;
-  getProduct(idProducto, (err, results) => {
+  product.getProduct(idProducto, (err, results) => {
     if (err) {
       return res.status(500).json({
         error: 1,
@@ -72,7 +71,7 @@ exports.getProductByID = (req, res) => {
   let idProducto = null;
   idProducto = req.params.idProducto;
   //const prueba = req.query.prueba;
-  getProductByID(idProducto, (err, results) => {
+  product.getProductByID(idProducto, (err, results) => {
     if (err) {
       return res.status(500).json({
         error: 1,
@@ -81,7 +80,7 @@ exports.getProductByID = (req, res) => {
       });
     }
 
-    getSupplierByProduct(idProducto, (err, resultSupplier) => {
+    product.getSupplierByProduct(idProducto, (err, resultSupplier) => {
       if (err) {
         return res.status(500).json({
           error: 1,
@@ -110,8 +109,11 @@ exports.getProductByID = (req, res) => {
   
 };
 
+/**
+ * ENDPOINT CATEGORIAS START
+ */
 exports.getCategory = (req, res) => {
-  getCategory((error, results) => {
+  product.getCategory((error, results) => {
     if (error) {
       return res.status(500).json({
         error: 1,
@@ -126,8 +128,104 @@ exports.getCategory = (req, res) => {
   });
 };
 
+
+exports.addCategory = async (req, res) => {
+  try {
+    const idUsuario = helper.getUserByToken(req.headers['authorization']);
+
+    const data = req.body;
+    data.creado_por = idUsuario;
+
+    product.addCategory(data, (error, results) => {
+      if(error) {
+        console.log('Error: ', error);
+        return res.status(500).json({
+          success: 0,
+          msg: "Ah ocurrido un error interno",
+        });
+      }
+
+      return res.status(200).json({
+        success: 1,
+        msg: 'Se ha registrado de forma correcta!',
+        status: 200
+      });
+    });
+  } catch (error) {
+    console.log('Error: ', error);
+    return res.status(500).json({
+      return: 1,
+      success: 0,
+      msg: "Ah ocurrido un error interno",
+    });
+  }
+}
+exports.updateCategory = async (req, res) => {
+  try {
+    // const idUsuario = helper.getUserByToken(req.headers['authorization']);
+
+    const data = req.body;
+    data.idCategoria = req.params.idCategoria;
+    console.log('data: ', data);
+    product.updateCategory(data, (error, results) => {
+      if(error) {
+        console.log('Error: ', error);
+        return res.status(500).json({
+          success: 0,
+          msg: "Ah ocurrido un error interno",
+        });
+      }
+
+      return res.status(200).json({
+        success: 1,
+        msg: 'Se ha actualizado de forma correcta!',
+        status: 200
+      });
+    });
+  } catch (error) {
+    console.log('Error: ', error);
+    return res.status(500).json({
+      return: 1,
+      success: 0,
+      msg: "Ah ocurrido un error interno",
+    });
+  }
+}
+
+exports.deleteCategory = async (req, res) => {
+  try {
+    // const idUsuario = helper.getUserByToken(req.headers['authorization']);
+
+    const idCategoria = req.params.idCategoria;
+    product.deleteCategory(idCategoria, (error, results) => {
+      if(error) {
+        console.log('Error: ', error);
+        return res.status(500).json({
+          success: 0,
+          msg: "Ah ocurrido un error interno",
+        });
+      }
+
+      return res.status(200).json({
+        success: 1,
+        msg: 'Se ha eliminado de forma correcta!',
+        status: 200
+      });
+    });
+  } catch (error) {
+    console.log('Error: ', error);
+    return res.status(500).json({
+      return: 1,
+      success: 0,
+      msg: "Ah ocurrido un error interno",
+    });
+  }
+}
+/**
+ * ENDPOINT CATEGORIAS END
+ */
 exports.getSubCategory = (req, res) => {
-    getSubCategory((error, results) => {
+  product.getSubCategory((error, results) => {
       if (error) {
         return res.status(500).json({
           error: 1,
@@ -143,7 +241,7 @@ exports.getSubCategory = (req, res) => {
   };
 
   exports.getBrand = (req, res) => {
-    getBrand((error, results) => {
+    product.getBrand((error, results) => {
       if (error) {
         return res.status(500).json({
           error: 1,
@@ -159,7 +257,7 @@ exports.getSubCategory = (req, res) => {
   };
 
   exports.getPresentationUnid = (req, res) => {
-    getPresentationUnid((error, results) => {
+    product.getPresentationUnid((error, results) => {
       if (error) {
         return res.status(500).json({
           error: 1,
@@ -186,7 +284,7 @@ exports.getSubCategory = (req, res) => {
       }
 
       console.log('dataFoto:', data);
-      registerProduct(data, (error, resultado) => {
+      product.registerProduct(data, (error, resultado) => {
         if (error) {
           console.log('ERROR: ', error);
           return res.status(500).json({
@@ -215,7 +313,7 @@ exports.getSubCategory = (req, res) => {
         data.urlFoto = `http://localhost:4000/public/img/product/${req.file.filename}`;
       }
 
-      updateProduct(data, (error, resultado) => {
+      product.updateProduct(data, (error, resultado) => {
         if (error) {
           console.log('ERROR: ', error);
           return res.status(500).json({

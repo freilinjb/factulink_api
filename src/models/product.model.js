@@ -149,6 +149,67 @@ exports.getCategory = async (callback) => {
   }
 };
 
+/**
+ * METODOS DE CATEGORIAS START
+ */
+exports.addCategory = async (data, callback) => {
+  try {
+    console.log('DataCategory: ', data);
+    connection.query(`INSERT INTO categoria(descripcion, creado_por, estado) VALUES(?,?,?)`,
+    [
+      data.nombre,
+      data.creado_por,
+      data.estado,
+    ],
+    (error, result, fields) => {
+      console.log('DataResultante: ', result);
+      console.log('DataResultante: ', fields);
+      return error ? callback(error) : callback(null, result);
+    });
+  } catch (error) {
+    console.log('Error: ', error);
+    return "Ah ocurrido un error interno";
+  }
+}
+
+exports.deleteCategory = async (idCategoria, callback) => {
+  try {
+    console.log('DataCategory: ', idCategoria);
+    connection.query(`DELETE FROM categoria WHERE idCategoria = ?`,
+    [idCategoria],
+    (error, result, fields) => {
+      return error ? callback(error) : callback(null, result);
+    });
+  } catch (error) {
+    console.log('Error: ', error);
+    return "Ah ocurrido un error interno";
+  }
+}
+
+exports.updateCategory = async (data, callback) => {
+  try {
+    console.log('DataCategory: ', data);
+    connection.query(`UPDATE categoria c SET c.descripcion = ?, c.estado = ? WHERE c.idCategoria = ?`,
+    [
+      data.nombre,
+      data.estado,
+      data.idCategoria,
+    ],
+    (error, result, fields) => {
+      console.log('DataResultante: ', result);
+      console.log('DataResultante: ', fields);
+      return error ? callback(error) : callback(null, result);
+    });
+  } catch (error) {
+    console.log('Error: ', error);
+    return "Ah ocurrido un error interno";
+  }
+}
+
+/**
+ * METODOS DE CATEGORIAS END
+ */
+
 exports.getSubCategory = async (callback) => {
   try {
     connection.query(
