@@ -48,18 +48,10 @@ router.put("/product/category/:idCategoria",  [
   }
 ]);
 
-router.delete("/product/category/:idCategoria",  [
+router.delete("/product/category/:idCategoria",
   checkToken, 
-  validateAddCategory,
-  (req, res, next) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()) {
-      console.log('Error: ', errors.array([0]['msg']));
-      return res.status(400).json({ errors: errors.array([0]["msg"]) });
-    }
-    product.deleteCategory(req, res, next);
-  }
-]);
+  product.deleteCategory
+);
 /**
  * ENDPOINT CATEGORIAS END
  */
@@ -92,7 +84,10 @@ router.put("/product/subcategory/:idSubCategoria",  [
     product.updateSubCategory(req, res, next);
   }
 ]);
-
+router.delete("/product/subcategory/:idSubCategoria",
+  checkToken, 
+  product.deleteSubCategory
+);
 /**
  * ENDPOINT SUBCATEGORIAS END
  */

@@ -268,7 +268,22 @@ exports.updateSubCategory = async (data, callback) => {
   }
 }
 
-
+exports.deleteSubCategory = async (idSubCategoria, callback) => {
+  try {
+    console.log('DataCategory: ', idSubCategoria);
+    connection.query(`DELETE FROM subcategoria WHERE idSubCategoria = ?`,
+    [idSubCategoria],
+    (error, result, fields) => {
+      return error ? callback(error) : callback(null, result);
+    });
+  } catch (error) {
+    console.log('Error: ', error);
+    return "Ah ocurrido un error interno";
+  }
+}
+/**
+ * METODOS DE SUBCATEGORIAS END
+ */
 exports.getBrand = async (callback) => {
   try {
     connection.query(
