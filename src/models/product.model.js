@@ -210,6 +210,9 @@ exports.updateCategory = async (data, callback) => {
  * METODOS DE CATEGORIAS END
  */
 
+/**
+ * METODOS DE SUBCATEGORIAS START
+ */
 exports.getSubCategory = async (callback) => {
   try {
     connection.query(
@@ -227,6 +230,44 @@ exports.getSubCategory = async (callback) => {
     return "Ah ocurrido un error";
   }
 };
+
+exports.addSubCategory = async (data, callback) => {
+  try {
+    console.log('addSubCategory: ', data);
+    connection.query(`INSERT INTO subcategoria(idCategoria,descripcion,creado_por) VALUES(?,?,?)`,
+    [
+      data.idCategoria,
+      data.nombre,
+      data.creado_por,
+      data.estado,
+    ],
+    (error, result, fields) => {
+      return error ? callback(error) : callback(null, result);
+    });
+  } catch (error) {
+    console.log('Error: ', error);
+    return "Ah ocurrido un error interno";
+  }
+}
+exports.updateSubCategory = async (data, callback) => {
+  try {
+    console.log('SubCategory: ', data);
+    connection.query(`UPDATE subcategoria s SET s.idCategoria = ?, s.descripcion = ?, s.estado = ? WHERE s.idSubCategoria = ?`,
+    [
+      data.idCategoria,
+      data.nombre,
+      data.estado,
+      data.idSubCategoria,
+    ],
+    (error, result, fields) => {
+      return error ? callback(error) : callback(null, result);
+    });
+  } catch (error) {
+    console.log('Error: ', error);
+    return "Ah ocurrido un error interno";
+  }
+}
+
 
 exports.getBrand = async (callback) => {
   try {

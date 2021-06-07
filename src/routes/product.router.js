@@ -6,7 +6,7 @@ const { upload } = require("../helpers");
 
 const validar = require("../middlewares/validate");
 const { validateAddProduct } = require("../middlewares/validateProduct");
-const { validateAddCategory } = require("../middlewares/validateCategory");
+const { validateAddCategory, validateAddSubCategory, validateUpdateSubCategory } = require("../middlewares/validateCategory");
 const product = require("../controllers/product.controller");
 
 router.post("/uploads", upload.single("productImag"), (req, res, next) => {
@@ -63,8 +63,39 @@ router.delete("/product/category/:idCategoria",  [
 /**
  * ENDPOINT CATEGORIAS END
  */
-router.get("/product/subcategory", checkToken, product.getSubCategory);
 
+/**
+ * ENDPOINT SUBCATEGORIAS START
+ */
+router.get("/product/subcategory", checkToken, product.getSubCategory);
+router.post("/product/subcategory",  [
+  checkToken, 
+  validateAddSubCategory,
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if(!errors.isEmpty()) {
+      console.log('Error: ', errors.array([0]['msg']));
+      return res.status(400).json({ errors: errors.array([0]["msg"]) });
+    }
+    product.addSubCategory(req, res, next);
+  }
+]);
+router.put("/product/subcategory/:idSubCategoria",  [
+  checkToken, 
+  validateUpdateSubCategory,
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if(!errors.isEmpty()) {
+      console.log('Error: ', errors.array([0]['msg']));
+      return res.status(400).json({ errors: errors.array([0]["msg"]) });
+    }
+    product.updateSubCategory(req, res, next);
+  }
+]);
+
+/**
+ * ENDPOINT SUBCATEGORIAS END
+ */
 router.get("/product/brand", checkToken, product.getBrand);
 
 router.get(

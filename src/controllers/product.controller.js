@@ -224,6 +224,10 @@ exports.deleteCategory = async (req, res) => {
 /**
  * ENDPOINT CATEGORIAS END
  */
+
+/**
+ * ENDPOINT SUBCATEGORISA START
+ */
 exports.getSubCategory = (req, res) => {
   product.getSubCategory((error, results) => {
       if (error) {
@@ -240,6 +244,73 @@ exports.getSubCategory = (req, res) => {
     });
   };
 
+  exports.addSubCategory = async (req, res) => {
+    try {
+      const idUsuario = helper.getUserByToken(req.headers['authorization']);
+  
+      const data = req.body;
+      data.creado_por = idUsuario;
+  
+      product.addSubCategory(data, (error, results) => {
+        if(error) {
+          console.log('Error: ', error);
+          return res.status(500).json({
+            success: 0,
+            msg: "Ah ocurrido un error interno",
+          });
+        }
+  
+        return res.status(200).json({
+          success: 1,
+          msg: 'Se ha registrado de forma correcta!',
+          status: 200
+        });
+      });
+    } catch (error) {
+      console.log('Error: ', error);
+      return res.status(500).json({
+        return: 1,
+        success: 0,
+        msg: "Ah ocurrido un error interno",
+      });
+    }
+  }
+
+  exports.updateSubCategory = async (req, res) => {
+    try {
+      // const idUsuario = helper.getUserByToken(req.headers['authorization']);
+  
+      const data = req.body;
+      data.idSubCategoria = req.params.idSubCategoria;
+      console.log('data: ', data);
+      // return;
+      product.updateSubCategory(data, (error, results) => {
+        if(error) {
+          console.log('Error: ', error);
+          return res.status(500).json({
+            success: 0,
+            msg: "Ah ocurrido un error interno",
+          });
+        }
+  
+        return res.status(200).json({
+          success: 1,
+          msg: 'Se ha actualizado de forma correcta!',
+          status: 200
+        });
+      });
+    } catch (error) {
+      console.log('Error: ', error);
+      return res.status(500).json({
+        return: 1,
+        success: 0,
+        msg: "Ah ocurrido un error interno",
+      });
+    }
+  }
+  /**
+ * ENDPOINT SUBCATEGORISA END
+ */
   exports.getBrand = (req, res) => {
     product.getBrand((error, results) => {
       if (error) {

@@ -91,4 +91,29 @@
  * @method post
  */
 
+/**
+ * @description Consultando Categoria
+ * @url  http://localhost:4000/api/product/category/
+ * @method post
+ * nombre: ,
+ * estado: 
+ */
+
+/**
+ * @description Consultando Categoria
+ * @url  http://localhost:4000/api/product/category/20
+ * @method put
+ */
+
+/**
+ * @description Consultando Categoria
+ * @url  http://localhost:4000/api/product/category/20
+ * @method delete
+ * nombre: ,
+ * estado: 
+ */
+
+
+
+
 
