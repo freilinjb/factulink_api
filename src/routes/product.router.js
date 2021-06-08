@@ -22,6 +22,7 @@ router.post("/uploads", upload.single("productImag"), (req, res, next) => {
  * ENDPOINT CATEGORIAS START
  */
 router.get("/product/category", checkToken, product.getCategory);
+router.get("/product/category/:idCategoria", checkToken, product.getCategory);
 router.post("/product/category",  [
   checkToken, 
   validateAddCategory,

@@ -131,20 +131,65 @@ exports.getProductByID = async (idProducto, callback) => {
   }
 };
 
-exports.getCategory = async (callback) => {
+exports.getCategory = async (data, callback) => {
   try {
+    let condicion = null;
+    let search = '';
+
+    condicion = data.idCategoria ? `WHERE c.idCategoria = ${data.idCategoria}`   : "";
+    if(data.idCategoria == null && data.limit && data.offset >= 0) {
+      if(data.search) {
+          data.search = data.search.trim();
+          search = `  WHERE CONCAT(c.categoria, c.creado_por, c.creado_en, c.estado) LIKE '%${data.search}%'`;
+      }
+      condicion += ` LIMIT ${data.limit}  OFFSET ${data.offset} `;
+    }
+
+    
+    let total_page = 0;
+    let total_rows = 0;
     connection.query(
-      `
-        SELECT c.idCategoria, c.descripcion AS categoria FROM categoria c 
-            WHERE c.idCategoria AND c.estado IS TRUE
-        `,
+      `SELECT COUNT(c.idCategoria) AS cantidad FROM categoria_v c ${search}`,
       [],
-      (error, results, fields) => {
-        return error ? callback(error) : callback(null, results);
+      async (error, results, fields) => {
+       // total_page = results[0].cantidad;
+       if(results.length > 0) {
+         console.log('prueba: ', results);
+        total_rows = results[0].cantidad;
+       } else {
+        total_rows = 0;
+        console.log('length: ', results);
+       }
+        console.log('cantidad total: ', total_rows);
+        connection.query(
+          `SELECT 
+            c.idCategoria, 
+            c.categoria, 
+            c.creado_por,
+            c.creado_en,
+            c.estado
+          FROM categoria_v c
+              ${search}  ${condicion}`,
+          [],
+          (error, results, fields) => {
+            console.log('idCategoria: ', Math.ceil(total_rows / data.limit));
+            
+            total_page = data.idCategoria == null ? Math.ceil(total_rows / data.limit) : 1;
+            console.log("total_page: ", total_rows);
+
+            return error
+              ? callback(error)
+              : callback(null, results, total_page, total_rows);
+          }
+        );
+
+        return total_page;
       }
     );
+
+    console.log("cantidad: ", total_page);
   } catch (error) {
-    console.log("Error: ", error);
+    console.error("error: ", error);
     return "Ah ocurrido un error";
   }
 };
@@ -217,8 +262,18 @@ exports.getSubCategory = async (callback) => {
   try {
     connection.query(
       `
-        SELECT s.idSubCategoria,s.descripcion AS subcategoria, s.idCategoria FROM subcategoria s 
-            WHERE s.idCategoria AND s.estado IS TRUE
+      SELECT 
+          s.idSubCategoria, 
+          s.descripcion AS subCategoria, 
+          s.idCategoria, 
+          c.descripcion AS categoria, 
+          CONCAT(p.nombre, ' ',p.apellido) AS creado_por, 
+          s.creado_en 
+        FROM subcategoria s
+        INNER JOIN categoria c ON s.idCategoria = c.idCategoria
+        LEFT JOIN usuario u ON u.idUsuario = s.creado_por
+        LEFT JOIN empleado e ON u.idEmpleado = e.idEmpleado
+        LEFT JOIN persona p ON e.idPersona = p.idPersona
         `,
       [],
       (error, results, fields) => {
