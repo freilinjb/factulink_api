@@ -61,6 +61,7 @@ router.delete("/product/category/:idCategoria",
  * ENDPOINT SUBCATEGORIAS START
  */
 router.get("/product/subcategory", checkToken, product.getSubCategory);
+router.get("/product/subcategory/:idSubCategoria", checkToken, product.getSubCategory);
 router.post("/product/subcategory",  [
   checkToken, 
   validateAddSubCategory,
