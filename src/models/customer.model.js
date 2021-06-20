@@ -1,13 +1,23 @@
 const { connection } = require("../config/database");
 
+exports.getComprobante = async (callback) => {
+  connection.query(`SELECT c.tipoComprobante, CONCAT(c.descripcion, ' (', c.tipoComprobante,')') AS comprobante
+  FROM comprobante c WHERE c.venta IS TRUE`,
+  [],
+  (error, results, fields) => {
+    return error ? callback(error) : callback(null, results);
+  })
+
+
+  
+}
+
 exports.getCustomer = async (data, callback) => {
   try {
     let condicion = "";
     let search = "";
 
-    condicion = data.idCliente
-      ? `WHERE a.idCliente = ${data.idCliente}`
-      : "";
+    condicion = data.idCliente ? `WHERE a.idCliente = ${data.idCliente}` : "";
     if (data.idCliente == null && data.limit && data.offset >= 0) {
       //Valida si es una busqueda que se va arelizar
       if (data.search) {
@@ -27,6 +37,11 @@ exports.getCustomer = async (data, callback) => {
       [],
       async (error, results, fields) => {
        // total_page = results[0].cantidad;
+       if(error) {
+        console.error("error: ", error);
+        return callback(error);
+       }
+
        if(results.length > 0) {
          console.log('prueba: ', results);
         total_rows = results[0].cantidad;
@@ -82,9 +97,7 @@ exports.getCustomer = async (data, callback) => {
             total_page = data.idCliente == null ? Math.ceil(total_rows / data.limit) : 1;
             console.log("total_page: ", total_rows);
 
-            return error
-              ? callback(error)
-              : callback(null, results, total_page, total_rows);
+            return error  ? callback(error)  : callback(null, results, total_page, total_rows);
           }
         );
 
