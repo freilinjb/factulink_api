@@ -306,9 +306,7 @@ exports.getSubCategory = async (data, callback) => {
             total_page = data.idSubCategoria == null ? Math.ceil(total_rows / data.limit) : 1;
             console.log("total_page: ", total_rows);
 
-            return error
-              ? callback(error)
-              : callback(null, results, total_page, total_rows);
+            return error ? callback(error) : callback(null, results, total_page, total_rows);
           }
         );
 

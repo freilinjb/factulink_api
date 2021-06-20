@@ -1,5 +1,22 @@
 const customer = require("../models/customer.model");
 
+exports.getComprobante = (req, res) => {
+  customer.getComprobante((err, results) => {
+      if (err) {
+        return res.status(500).json({
+          error: 1,
+          success: 0,
+          msg: "Ah ocurrido un error interno",
+        });
+      }
+  
+      return res.status(200).json({
+        success: 1,
+         data: results,
+      });
+  })
+}
+
 exports.getCustomer = (req, res) => {
   let idCliente = null;
   let data = {};

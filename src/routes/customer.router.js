@@ -12,6 +12,12 @@ router.get(
 );
 
 router.get(
+    "/customer/comprobante",
+    checkToken,
+    customer.getComprobante
+);
+
+router.get(
     "/customer/:idCliente",
     checkToken,
     customer.getCustomer
