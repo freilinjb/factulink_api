@@ -2,7 +2,7 @@ const { compareSync } = require("bcrypt");
 const { sign } = require("jsonwebtoken");
 const { verify } = require("jsonwebtoken");
 
-const { getUser } = require("../models/user.model");
+const { getUser } = require("../models/auth.model");
 
 exports.auth = async (req, res, next) => {
   const { body } = req;

@@ -57,6 +57,8 @@ exports.getCustomer = async (data, callback) => {
                       rs.nombre, 
                       rs.razonSocial,
                       u.urlFoto,
+                      i.idTipoIdentificacion,
+                      t.descripcion AS tipoIdentificacion,
                       i.descripcion AS RNC,
                       COALESCE((
                         SELECT t.descripcion AS telefono FROM tercero_telefono tt
@@ -81,6 +83,7 @@ exports.getCustomer = async (data, callback) => {
                     CASE WHEN c.estado IS TRUE THEN TRUE ELSE FALSE END AS estado
                      FROM cliente c
                     INNER JOIN identificacion i ON i.idTercero = c.idTercero
+                    INNER JOIN tipo t ON i.idTipoIdentificacion = t.idTipo
                     INNER JOIN razon_social rs ON rs.idTercero = c.idTercero
                     INNER JOIN tercero_direccion td ON td.idTercero = c.idTercero
                     INNER JOIN direccion d ON d.idDireccion = td.idDireccion
@@ -114,28 +117,28 @@ exports.getCustomer = async (data, callback) => {
 
 exports.saveCustomer = async (data, callback) => {
   try {
+    console.log('saveCustomer: ', data);
     connection.query(
-      `CALL registrarCliente (NULL, ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      `CALL registrarCliente (NULL, ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [
         data.nombre,
-        data.razonSocial,
         data.urlFoto,
-        data.idTipoIdentificacion,
+        Number(data.idTipoIdentificacion),
         data.identificacion,
-        data.tipoComprobante,
-        data.idVendedor,
+        Number(data.tipoComprobante),
+        Number(data.idVendedor),
         data.correo,
         data.telefono,
-        data.diasCredito,
-        data.limiteCredito,
-        data.aplicaDescuento,
-        data.descuento,
-        data.idProvincia,
-        data.idCiudad,
+        Number(data.diasCredito),
+        Number(data.limiteCredito),
+        Number(data.aplicaDescuento),
+        0, //Descuento
+        Number(data.idProvincia),
+        Number(data.idCiudad),
         data.direccion,
         data.observacion,
-        data.creado_por,
-        data.estado,
+        Number(data.creado_por),
+        Number(data.estado),
       ],
       (error, result, fields) => {
         return error ? callback(error) : callback(null, result[0]);
@@ -149,11 +152,10 @@ exports.saveCustomer = async (data, callback) => {
 exports.updateCustomer = async (data, callback) => {
   try {
     connection.query(
-      `CALL registrarCliente (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      `CALL registrarCliente (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [
         data.idCliente,
         data.nombre,
-        data.razonSocial,
         data.urlFoto,
         data.idTipoIdentificacion,
         data.identificacion,

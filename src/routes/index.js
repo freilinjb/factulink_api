@@ -1,7 +1,7 @@
 const router = require('express').Router();
 
 const auth = require('./auth.router');
-const employee = require('./employee.router');
+const user = require('./user.router');
 const product = require('./product.router');
 const supplier = require('./supplier.router');
 const customer = require('./customer.router');
@@ -11,7 +11,7 @@ const unid = require('./unid.router');
 const identification = require('./identification.router');
 
 router.use(auth);
-router.use(employee);
+router.use(user);
 router.use(unid);
 router.use(product);
 router.use(supplier);
