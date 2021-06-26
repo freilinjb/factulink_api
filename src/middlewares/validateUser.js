@@ -2,7 +2,7 @@ const { body, validationResult } = require("express-validator");
 
 exports.validateAddUser = [
   body("nombre").notEmpty().withMessage({
-    message: "El nombre del usuario es obligatorio",
+    message: "El nombre es obligatorio",
     errorCode: 1,
   }),
   body("apellido").notEmpty().withMessage({
@@ -52,7 +52,7 @@ exports.validateAddUser = [
     message: "El campo de la categoria es obligatorio",
     errorCode: 1,
   }),
-  body("direccion").notEmpty().isNumeric().withMessage({
+  body("direccion").notEmpty().withMessage({
     message: "El campo de la categoria es obligatorio",
     errorCode: 1,
   }),

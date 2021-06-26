@@ -66,6 +66,24 @@ exports.getEmployees = async (data, callback) => {
   }
 };
 
+exports.getTypeUser = async (callback) => {
+  try {
+    connection.query(`
+    SELECT 
+      t.idTipo, 
+      t.descripcion AS tipoUsuario
+    FROM tipo t 
+    WHERE t.tipo = 'usuario' AND t.estado IS TRUE`,
+    [],
+    (error, results, fields) => {
+      console.log('Error: ', error);
+      return error ? callback(error) : callback(null, results);
+    })
+  } catch (error) {
+    return callback(errro);
+  }
+}
+
 exports.getEmployee = async (idEmpleado, callback) => {
   try {
     connection.query(
@@ -98,8 +116,9 @@ exports.getEmployee = async (idEmpleado, callback) => {
 };
 
 exports.addUser = async (data, callback) => {
+  console.log('Model: ', data)
   connection.query(
-    "CALL registrarEmpleado (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+    "CALL registrarEmpleado (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
     [
       data.nombre,
       data.apellido,

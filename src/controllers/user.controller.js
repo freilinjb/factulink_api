@@ -63,13 +63,32 @@ exports.getEmployee = (req, res) => {
   });
 };
 
+exports.getTypeUser = async (req, res) => {
+  user.getTypeUser((error, results) => {
+    if(error) {
+      return res.status(500).json({
+        error: 1,
+        success: 0,
+        msg: "Ah ocurrido un error interno",
+      })
+    }
+
+    return res.status(200).json({
+      success: 1,
+      data: results,
+    })
+  })
+}
+
 exports.addUser = async (req, res) => {
   try {
-    console.log("data: ", req.body);
-    // const { data } = req.body;
-    const data = JSON.parse(rq.body.data);
+    // console.log("addUser: ", req.body);
+    const data = req.body;
+    console.log('Data: ', data);
+    // const data = JSON.parse(req.body.data);
     user.addUser(data, (error, resultado) => {
       if (error) {
+        console.log('error: ', error);
         return res.status(500).json({
           return: 1,
           success: 0,
@@ -79,10 +98,12 @@ exports.addUser = async (req, res) => {
 
       return res.status(200).json({
         success: 1,
-        data: resultado,
+        data: resultado[0],
       });
     });
   } catch (error) {
+    console.log('error: ', error);
+
       res.status(400).send("Ah ocurrido un error interno");
   }
 };
