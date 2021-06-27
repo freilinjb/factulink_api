@@ -8,7 +8,7 @@ router.get("/user", checkToken, user.getEmployees);
 
 router.get("/user/typeUser", checkToken, user.getTypeUser);
 
-router.get("/user/:id", checkToken, user.getEmployee);
+router.get("/user/:idUsuario", checkToken, user.getUserByID);
 
 router.post("/user", [
   checkToken,

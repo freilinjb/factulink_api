@@ -115,6 +115,50 @@ exports.getEmployee = async (idEmpleado, callback) => {
   }
 };
 
+exports.getUserByID = async (idUsuario, callback) => {
+  connection.query(
+    `SELECT u.idUsuario, 
+    u.usuario, 
+    t2.descripcion AS tipoUsuario,
+    p.nombre,
+    p.apellido, 
+    s.idSexo,
+    s.descripcion AS sexo, 
+    p.idTipoIdentificacion,
+    t4.descripcion AS tipoIdentificacion,
+    p.identificacion,
+    p.fechaNacimiento,
+    t3.descripcion AS telefono,
+    c.descripcion AS correo,
+    pv.idProvincia,
+    pv.descripcion AS provincia,
+    ci.idCiudad,
+    ci.descripcion AS ciudad,
+    td.direccion,
+    CASE WHEN u.estado IS TRUE THEN 1 ELSE 0 END estado
+    FROM usuario u
+   INNER JOIN tipo t2 ON u.idTipoUsuario = t2.idTipo
+   INNER JOIN tipo t ON u.idTipoUsuario = t.idTipo
+   INNER JOIN empleado e ON u.idEmpleado = e.idEmpleado
+   INNER JOIN persona p ON e.idPersona = p.idPersona
+   INNER JOIN tipo t4 ON p.idTipoIdentificacion = t4.idTipo
+   INNER JOIN sexo s ON p.idSexo = s.idSexo
+   INNER JOIN tipo t1 ON p.idTipoIdentificacion = t1.idTipo
+   INNER JOIN tercero_telefono tt ON tt.idTercero = p.idTercero
+   INNER JOIN telefono t3 ON tt.idTelefono = t3.idTelefono
+   INNER JOIN tercero_correo tc ON tc.idTercero = p.idTercero
+   INNER JOIN correo c ON tc.idCorreo = c.idCorreo
+   INNER JOIN tercero_direccion td ON td.idTercero = p.idTercero
+   INNER JOIN direccion d ON td.idDireccion = d.idDireccion
+   INNER JOIN provincia pv ON pv.idProvincia = d.idProvincia
+   INNER JOIN ciudad ci ON d.idCiudad = ci.idCiudad
+   WHERE u.idUsuario = ${idUsuario}`,
+  [],
+  async (error, results, fields) => {
+    return error ? callback(error) : callback(null, results);
+  });
+}
+
 exports.addUser = async (data, callback) => {
   console.log('Model: ', data)
   connection.query(

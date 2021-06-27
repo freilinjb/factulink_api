@@ -107,3 +107,22 @@ exports.addUser = async (req, res) => {
       res.status(400).send("Ah ocurrido un error interno");
   }
 };
+
+exports.getUserByID = (req, res) => {
+  let idUsuario = req.params.idUsuario;
+  console.log('idUsuario: ',idUsuario);
+  user.getUserByID(idUsuario, (err, results) => {
+    if(err) {
+      return res.status(500).json({
+        error: 1,
+        success: 0,
+        msg: "Ah ocurrido un error interno"
+      });
+    }
+
+    return res.status(200).json({
+      success: 1,
+      data: results,
+    });
+  });
+}
