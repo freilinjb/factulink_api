@@ -9,6 +9,7 @@ const city = require('./city.router');
 const province = require('./province.router');
 const unid = require('./unid.router');
 const identification = require('./identification.router');
+const comprobante = require('./comprobante.route');
 
 router.use(auth);
 router.use(user);
@@ -19,6 +20,7 @@ router.use(customer);
 router.use(city);
 router.use(province);
 router.use(identification);
+router.use(comprobante);
 
 
 module.exports = router;
