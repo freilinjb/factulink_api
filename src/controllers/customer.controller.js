@@ -105,6 +105,8 @@ exports.saveCustomer = async (req, res) => {
  exports.updateCustomer = async (req, res) => {
   try {
     const data = req.body;
+    // console.log('Data: ', data);
+
     customer.updateCustomer(data, (error, result) => {
       if (error) {
         console.log("Error: ", error);
@@ -115,13 +117,13 @@ exports.saveCustomer = async (req, res) => {
           msg: "Ah ocurrido un error interno",
         });
       }
-
       return res.status(200).json({
         success: 1,
         data: result,
       });
     });
   } catch (error) {
+    console.log('Error: ', error);
     res.status(500).send(error);
   }
 };

@@ -29,9 +29,9 @@ router.post("/customer", [
     customer.saveCustomer
 ]);
 
-router.put(
-    "/customer/:idCliente",
+router.put("/customer/:idCliente",
     checkToken,
+    upload.single("img"),
     customer.updateCustomer
 );
 

@@ -1,59 +1,112 @@
 const { connection } = require("../config/database");
 
-exports.getComprobantes = async (tipoComprobante, callback) => {
-    
-    let condicion  = tipoComprobante ? `WHERE c.tipoComprobante = ${tipoComprobante}` : '';
-    try {
-        connection.query(`
-        SELECT 
-            c.tipoComprobante,
-            c.TipoCliente,
-            c.encabezado,
-            c.descripcion,
-            c.tipo,
-            c.tipoMovimiento,
-            CASE WHEN c.mostrarCliente IS TRUE THEN 1 ELSE 0 END AS mostrarCliente,
-            c.cantidadMinima,
-            ac.vencimiento,
-            ac.secuencia,
-            CASE WHEN ac.estado IS TRUE THEN 1 ELSE 0 END AS estado
-        FROM comprobante c
-        LEFT JOIN adquisicion_comprobante ac ON c.tipoComprobante = ac.tipoComprobante
-        ${condicion}
-        `,
-        [], 
-        async (error, results, fields) => {
-            return error  ? callback(error) : callback(null, results);
-        })
-    } catch (error) {
-        console.log(error);
-        return error  ? callback(error) : callback(null, results);
+exports.getComprobantes = async (data, callback) => {
+  try {
+    let condicion = "";
+    let search = "";
+    condicion = data.tipoComprobante ? `WHERE tipoComprobante = ${data.tipoComprobante}` : "";
+    if (data.tipoComprobante == null && data.limit && data.offset >= 0) {
+      //Valida si es una busqueda que se va arelizar
+      if (data.search) {
+        data.search = data.search.trim();
+        search = ` WHERE CONCAT(tipoComprobante, TipoCliente, encabezado, descripcion, tipo, tipoMovimiento, mostrarCliente, cantidadMinima, vencimiento, secuencia, estado) LIKE '%${data.search}%' `;
+      }
+      condicion += ` LIMIT ${data.limit}  OFFSET ${data.offset} `;
     }
-}
+
+    // condicion = tipoComprobante ? `WHERE c.tipoComprobante = ${tipoComprobante}` : "";
+    // console.log("condicion: ", condicion);
+
+    let total_page = 0;
+    let total_rows = 0;
+    connection.query(
+      `SELECT COUNT(c.tipoComprobante) AS cantidad FROM comprobante_v c ${search}`,
+      [],
+      async (error, results, fields) => {
+        // total_page = results[0].cantidad;
+        if (error) {
+          console.error("error: ", error);
+          return callback(error);
+        }
+
+        if (results.length > 0) {
+          console.log("prueba: ", results);
+          total_rows = results[0].cantidad;
+        } else {
+          total_rows = 0;
+          console.log("length: ", results);
+        }
+        console.log("cantidad total: ", total_rows);
+        connection.query(
+          `SELECT 
+                tipoComprobante,
+                tipoCliente, 
+                encabezado, 
+                descripcion, 
+                tipo, 
+                tipoMovimiento, 
+                mostrarCliente, 
+                cantidadMinima, 
+                vencimiento, 
+                secuencia, 
+                estado 
+            FROM comprobante_v
+                  ${search}  ${condicion}
+              `,
+          [],
+          (error, results, fields) => {
+            console.log("idProduct: ", Math.ceil(total_rows / data.limit));
+
+            total_page = data.idCliente == null ? Math.ceil(total_rows / data.limit) : 1;
+            console.log("total_page: ", total_rows);
+
+            return error
+              ? callback(error)
+              : callback(null, results, total_page, total_rows);
+          }
+        );
+
+        return total_page;
+      }
+    );
+
+    console.log("cantidad: ", total_page);
+  } catch (error) {
+    console.error("error: ", error);
+    return "Ah ocurrido un error";
+  }
+};
 
 exports.saveComprobantes = async (data, callback) => {
-    try {
-        connection.query(`INSERT INTO adquisicion_comprobante(tipoComprobante, idSucursal, idTipoDocumento, vencimiento, inicio, final, secuencia, creado_por) VALUES(?,?,?,STR_TO_DATE(?,'%m/%d/%Y'),?,?,?,?)`,
-        [data.tipoComprobante, 
+  try {
+    console.log('saveComprobantes: ', data);
+
+    connection.query(
+      `INSERT INTO adquisicion_comprobante(tipoComprobante, idSucursal, idTipoDocumento, vencimiento, inicio, final, secuencia, creado_por) VALUES(?,?,?,STR_TO_DATE(?,'%Y-%m-%d'),?,?,?,?)`,
+      [
+        data.tipoComprobante,
         data.idSucursal,
         data.idTipoDocumento,
         data.vencimiento,
         data.inicio,
         data.final,
         data.secuencia,
-        data.creado_por],
-        async (error, results, fields) => {
-            return error ? callback(error) : callback(null, results);
-        });
-    } catch (error) {
-        console.log('Error: ', error);
-        return "Ah ocurrido un error interno";
-    }
-}
+        data.creado_por,
+      ],
+      async (error, results, fields) => {
+        return error ? callback(error) : callback(null, results);
+      }
+    );
+  } catch (error) {
+    console.log("Error: ", error);
+    return "Ah ocurrido un error interno";
+  }
+};
 
 exports.updateComprobantes = async (data, callback) => {
-    try {
-        connection.query(`
+  try {
+    connection.query(
+      `
         UPDATE adquisicion_comprobante ac
             SET ac.tipoComprobante = ?,
             ac.idSucursal = ?, 
@@ -67,7 +120,8 @@ exports.updateComprobantes = async (data, callback) => {
             ac.estado = ?
         WHERE ac.idAquisicion = ?`,
 
-        [data.tipoComprobante,
+      [
+        data.tipoComprobante,
         data.idSucursal,
         data.idTipoDocumento,
         data.vencimiento,
@@ -76,12 +130,14 @@ exports.updateComprobantes = async (data, callback) => {
         data.secuencia,
         1,
         data.estado,
-        data.idAquisicion],
-        async (error, results, fields) => {
-            return error ? callback(error) : callback(null, results);
-        });
-    } catch (error) {
-        console.log('Error: ', error);
-        return "Ah ocurrido un error interno";
-    }
-}
+        data.idAquisicion,
+      ],
+      async (error, results, fields) => {
+        return error ? callback(error) : callback(null, results);
+      }
+    );
+  } catch (error) {
+    console.log("Error: ", error);
+    return "Ah ocurrido un error interno";
+  }
+};

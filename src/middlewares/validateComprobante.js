@@ -14,13 +14,6 @@ exports.validateComprobante = [
       errorCode: 1,
     })
     .isNumeric(),
-    body("idTipoDocumento")
-    .notEmpty()
-    .withMessage({
-      message: "El campo de la categoria es obligatorio",
-      errorCode: 1,
-    })
-    .isNumeric(),
     body("vencimiento")
     .notEmpty()
     .withMessage({

@@ -151,31 +151,32 @@ exports.saveCustomer = async (data, callback) => {
 
 exports.updateCustomer = async (data, callback) => {
   try {
+    console.log('Model: ', data);
     connection.query(
       `CALL registrarCliente (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [
         data.idCliente,
         data.nombre,
         data.urlFoto,
-        data.idTipoIdentificacion,
+        Number(data.idTipoIdentificacion),
         data.identificacion,
-        data.tipoComprobante,
-        data.idVendedor,
+        Number(data.tipoComprobante),
+        Number(data.idVendedor),
         data.correo,
         data.telefono,
-        data.diasCredito,
-        data.limiteCredito,
-        data.aplicaDescuento,
-        data.descuento,
-        data.idProvincia,
-        data.idCiudad,
+        Number(data.diasCredito),
+        Number(data.limiteCredito),
+        Number(data.aplicaDescuento),
+        0, //Descuento
+        Number(data.idProvincia),
+        Number(data.idCiudad),
         data.direccion,
         data.observacion,
-        data.creado_por,
-        data.estado,
+        Number(data.creado_por),
+        Number(data.estado),
       ],
       (error, result, fields) => {
-        return error ? callback(error) : callback(null, result[0]);
+          return error ? callback(error) : callback(null, result[0]);
       }
     );
   } catch (error) {
