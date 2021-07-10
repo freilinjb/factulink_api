@@ -2,6 +2,7 @@ const { connection } = require("../config/database");
 
 exports.savebilling = async (data, callback) => {
   try {
+    let numFactura = 0;
     connection.beginTransaction((error) => {
         if (error) {
           return connection.rollback(() => {
@@ -9,14 +10,13 @@ exports.savebilling = async (data, callback) => {
           });
         }
   
-      connection.query(`INSERT INTO factura(idUsuario, idCliente, idTipoFactura, idFormaPago, NFC, descuento, observacion)
-      VALUES(?,?,?,?,getNFC(?),?,?)`,
+      connection.query(`INSERT INTO factura(idUsuario, idCliente, idTipoFactura, NFC, descuento, observacion)
+      VALUES(?,?,?,getNFC(getTipoComprobante(?)),?,?)`,
       [
         data.idUsuario,
         data.idCliente,
         data.idTipoFactura,
-        data.idFormaPago,
-        data.tipoNFC,
+        data.idCliente, //La funcion verifica el tipo de comprobante
         data.descuento,
         data.observacion
       ],
@@ -26,10 +26,12 @@ exports.savebilling = async (data, callback) => {
               console.log('Error2: ', error);
               return error;
           });
-        }
 
-        connection.query(`UPDATE adquisicion_comprobante ac SET ac.secuencia = (ac.secuencia)+1 WHERE ac.tipoComprobante = ? AND ac.estado IS TRUE`,
-        [data.tipoComprobante],
+        }
+        numFactura = result.insertId;
+
+        connection.query(`UPDATE adquisicion_comprobante ac SET ac.secuencia = (ac.secuencia)+1 WHERE ac.tipoComprobante = getTipoComprobante(?) AND ac.estado IS TRUE`,
+        [data.idCliente],
         (error, resultAdquisicion, fields) => {
           if(error) {
             console.log('Error: UPDATE: ', error);
@@ -45,14 +47,13 @@ exports.savebilling = async (data, callback) => {
           connection.query(
             `INSERT INTO detalle_factura(numFactura, idProducto, precio, cantidad, itbis) VALUES(?,?,?,?,?)`,
             [numFactura, idProducto, precio, cantidad, itbis],
-            (error, result, fields) => {
+            (error, rs, fields) => {
               if (error) {
                 console.log('Error: ', error);
                 return connection.rollback(() => {
                     return callback(error);
                 });
               }
-              console.log('detalle_factura: ', result);
 
               connection.commit((err) => {
                 if (err) {
@@ -63,6 +64,38 @@ exports.savebilling = async (data, callback) => {
               });
             }
           );
+
+          /**
+           * ACTUALIZAR EL STOCK DE LOS PRODUCTOS
+           */
+            
+            connection.query(
+              `UPDATE producto p SET p.stockInicial = p.stockInicial - ? WHERE p.idProducto = ?`,
+              [
+                Number(cantidad), 
+                Number(idProducto)
+              ],
+              (error, rs, fields) => {
+                if (error) {
+                  console.log('Error: ', error);
+                  return connection.rollback(() => {
+                      return callback(error);
+                  });
+                }
+
+                connection.commit((err) => {
+                  if (err) {
+                    return connection.rollback(() => {
+                      return callback(error); 
+                    });
+                  }
+                });
+              }
+            );
+
+          /**
+           * FIN DE LA ACTUALIZACION
+           */
         });
 
         connection.commit((err) => {
@@ -72,15 +105,70 @@ exports.savebilling = async (data, callback) => {
             })
           }
         })
-
         return callback(null, result); 
       })
     })
   } catch (error) {
     console.log('errorPrueba2 : ', error);
     return "Ha ocurrido un error";
-
   }
+}
+
+exports.getInvoice = async (numFactura, callback) => {
+
+  connection.query(`
+  SELECT 
+    f.numFactura, 
+    t.descripcion AS tipoFactura,
+    f.NFC, 
+    f.fecha, 
+    t.descripcion AS tipo, 
+    c.idCliente, 
+    c.diasCredito, 
+    rs.nombre, 
+    rs.razonSocial, 
+    t1.descripcion AS telefono,
+    c2.descripcion AS correo,
+    i.descripcion AS identificacion,
+    td.direccion,
+    p.codigo, 
+    p.nombre AS producto,
+    df.precio, 
+    df.cantidad,
+    df.itbis,
+    (df.precio * df.cantidad) * 1.18 AS importe,
+    c1.descripcion AS categoria,
+    m.descripcion AS marca,
+    s.descripcion AS subCategoria,
+    u.descripcion AS unidad,
+    f.observacion 
+  FROM factura f
+    INNER JOIN detalle_factura df ON f.numFactura = df.numFactura
+    INNER JOIN cliente c ON f.idCliente = c.idCliente
+    LEFT JOIN tercero_correo tc ON tc.idTercero = c.idTercero
+    LEFT JOIN correo c2 ON tc.idCorreo = c2.idCorreo
+    INNER JOIN identificacion i ON i.idTercero = c.idTercero
+    LEFT JOIN tercero_telefono tt ON tt.idTercero = c.idTercero
+    LEFT JOIN telefono t1 ON tt.idTelefono = t1.idTelefono
+    INNER JOIN razon_social rs ON rs.idTercero = c.idTercero
+
+    INNER JOIN tercero_direccion td ON td.idTercero = c.idTercero
+    INNER JOIN direccion d ON td.idDireccion = d.idDireccion
+
+    INNER JOIN tipo t ON t.idTipo = f.idTipoFactura
+    INNER JOIN producto p ON df.idProducto = p.idProducto
+    INNER JOIN categoria c1 ON p.idCategoria = c1.idCategoria
+    INNER JOIN subcategoria s ON s.idSubCategoria = p.idSubCategoria
+    INNER JOIN marca m ON p.idMarca = m.idMarca
+    INNER JOIN unidad u ON p.idUnidad = u.idUnidad
+  WHERE f.numFactura = ?`,
+    [numFactura],
+    (error, fac, fields) => {
+      console.log('FacturaFac:numFactura ', numFactura);
+      factura = fac;
+      console.log('ErrorFactura: ', error);
+      return error ? callback(error) : callback(null, fac);
+    });
 }
 
 exports.getCustomer = async (data, callback) => {

@@ -32,4 +32,9 @@ router.post('/billing', [
     },
   ]);
 
+  router.get(
+    "/billing/invoice/:numFactura",
+    checkToken,
+    billing.getInvoiceByNumber
+);
 module.exports = router;
