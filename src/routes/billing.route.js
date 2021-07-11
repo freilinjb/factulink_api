@@ -37,4 +37,10 @@ router.post('/billing', [
     checkToken,
     billing.getInvoiceByNumber
 );
+
+router.get(
+  "/billing/invoice_current",
+  checkToken,
+  billing.getInvoiceCurrent
+);
 module.exports = router;
