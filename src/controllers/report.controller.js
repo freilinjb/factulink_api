@@ -70,10 +70,15 @@ exports.getInvoice = async (req, res) => {
   let data = {};
   console.log('Data current:');
   numFactura = req.params.numFactura ? req.params.numFactura : null;
+
+
   data.numFactura = numFactura;
   data.page = req.query.page;
   data.search = req.query.search;
   data.limit = req.query.limit;
+
+  data.cliente = req.params.cliente ? Number(req.params.cliente) : null;
+
   console.log('data: ', data);
   if(!data.limit) {
     data.limit = 20;

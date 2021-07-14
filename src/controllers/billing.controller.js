@@ -14,7 +14,7 @@ exports.savebilling = (req, res) => {
       }
 
       const numFactura = results.insertId;
-      billing.getInvoice(numFactura, (err, results) => {
+      billing.getInvoiceByNumber(numFactura, (err, results) => {
         if(err) {
 
           return res.status(200).json({
@@ -37,7 +37,7 @@ exports.savebilling = (req, res) => {
 
 exports.getInvoiceByNumber = async (req, res) => {
   let numFactura = req.params.numFactura;
-  billing.getInvoice(numFactura, (err, result) => {
+  billing.getInvoiceByNumber(numFactura, (err, result) => {
     if(err) {
       console.log('Error: ', err);
       return res.status(500).json({
@@ -99,3 +99,23 @@ exports.getInvoiceCurrent = async (req, res) => {
     });
   });
 };
+
+exports.anularFactura = async (req, res) => {
+  let numFactura = req.params.numFactura;
+
+  billing.anularFactura(numFactura, (err, result) => {
+    if(err) {
+      console.log('Error: ', err);
+      return res.status(500).json({
+        return: 1,
+        error: 1,
+        msg: "Ah ocurrido un error interno",
+      });
+    }
+
+      return res.status(200).json({
+        success: 1,
+        msg: "Se ha anulado de forma correcta",
+      });
+  })
+}

@@ -43,4 +43,12 @@ router.get(
   checkToken,
   billing.getInvoiceCurrent
 );
+
+router.put(
+  "/billing/invoice/:numFactura",
+  checkToken,
+  billing.anularFactura
+);
+
+
 module.exports = router;

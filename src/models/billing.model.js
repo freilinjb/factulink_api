@@ -114,7 +114,37 @@ exports.savebilling = async (data, callback) => {
   }
 }
 
-exports.getInvoice = async (numFactura, callback) => {
+exports.anularFactura = async (numFactura, callback) => {
+  try {
+    connection.query(
+      `UPDATE factura f SET f.activo = FALSE WHERE f.numFactura = ?`,
+      [numFactura],
+      (error, resultd, fields) => {
+        if(error) {
+          return callback(error);
+        }
+
+        console.log('Eliminar: ', numFactura);
+        connection.query(`
+        UPDATE producto p
+          INNER JOIN detalle_factura df ON p.idProducto = df.idProducto
+          SET p.stockInicial = p.stockInicial+df.cantidad
+          WHERE df.numFactura = ?`,
+          [numFactura],
+          (error, results, fields) => {
+            // return error ? callback(error) : callback(null, results);
+          })
+
+        return callback(null, resultd);
+      }
+    )
+  } catch (error) {
+    console.error("error: ", error);
+    return "Ah ocurrido un error";
+  }
+}
+
+exports.getInvoiceByNumber = async (numFactura, callback) => {
 
   connection.query(`
   SELECT 
@@ -141,7 +171,8 @@ exports.getInvoice = async (numFactura, callback) => {
     m.descripcion AS marca,
     s.descripcion AS subCategoria,
     u.descripcion AS unidad,
-    f.observacion 
+    f.observacion,
+    CASE WHEN f.activo IS TRUE THEN 'Activo' ELSE 'Anulada' END AS estatus
   FROM factura f
     INNER JOIN detalle_factura df ON f.numFactura = df.numFactura
     INNER JOIN cliente c ON f.idCliente = c.idCliente
@@ -219,7 +250,8 @@ exports.getInvoiceCurrent = async (data, callback) => {
             DATE_FORMAT( f.fecha , '%Y-%m-%d %T') AS fecha, 
             COALESCE(rs.nombre, rs.razonSocial) AS cliente,
             COUNT(df.idProducto) AS cantidadProductom, 
-            SUM((df.precio * df.cantidad) * 1.18) AS total
+            SUM((df.precio * df.cantidad) * 1.18) AS total,
+            CASE WHEN f.activo IS TRUE THEN 'Activo' ELSE 'Anulada' END AS estatus
           FROM factura f
             INNER JOIN detalle_factura df ON f.numFactura = df.numFactura 
             INNER JOIN cliente c ON f.idCliente = c.idCliente
