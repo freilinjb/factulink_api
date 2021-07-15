@@ -77,7 +77,12 @@ exports.getInvoice = async (req, res) => {
   data.search = req.query.search;
   data.limit = req.query.limit;
 
-  data.cliente = req.params.cliente ? Number(req.params.cliente) : null;
+  data.cliente = req.query.cliente ? Number(req.query.cliente) : null;
+  data.tipoFactura = req.query.tipoFactura ? Number(req.query.tipoFactura) : null;
+
+  data.fechaDesde = req.query.fechaDesde ? req.query.fechaDesde : null;
+  data.fechaHasta = req.query.fechaHasta ? req.query.fechaHasta : null;
+  
 
   console.log('data: ', data);
   if(!data.limit) {
