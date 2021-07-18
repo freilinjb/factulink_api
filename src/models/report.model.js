@@ -161,5 +161,85 @@ exports.getInvoice = async (data, callback) => {
 }
 
 exports.getClientesCuentasPorCobrar = async (data, callback) => {
-  
+  try {
+    let condicion = "";
+    let search = "";
+
+    condicion = data.idCliente ? `WHERE a.idCliente = ${data.idCliente}` : "";
+    if (data.idCliente == null && data.limit && data.offset >= 0) {
+      //Valida si es una busqueda que se va arelizar
+      if (data.search) {
+        data.search = data.search.trim();
+        search = ` WHERE concat(a.nombre,a.razonSocial, a.RNC, a.diasCredito, a.limiteCredito, a.correo, a.telefono) LIKE '%${data.search}%' `;
+      }
+      condicion += ` LIMIT ${data.limit}  OFFSET ${data.offset} `;
+    }
+
+    let total_page = 0;
+    let total_rows = 0;
+    connection.query(
+      `SELECT COUNT(1) AS cantidad FROM cuentaPorCobrar_v c ${search}`,
+      [],
+      async (error, results, fields) => {
+        console.log('getClienteCuentasPor: ', results);
+       // total_page = results[0].cantidad;
+       if(error) {
+        console.error("error: ", error);
+        return callback(error);
+       }
+
+       if(results.length > 0) {
+         console.log('prueba: ', results);
+        total_rows = results[0].cantidad;
+       } else {
+        total_rows = 0;
+        console.log('length: ', results);
+
+       }
+        console.log('cantidad total: ', total_rows);
+        connection.query(
+          `SELECT 
+              c.idCliente,
+              u.urlFoto,
+              rs.nombre,
+              rs.razonSocial,
+              t.descripcion AS telefono,
+              c1.descripcion AS correo,
+              i.descripcion AS identificacion,
+              e.descripcion
+            FROM cliente c
+            LEFT JOIN urlfoto u ON u.idTercero = c.idTercero
+            INNER JOIN razon_social rs ON rs.idTercero = c.idTercero
+            LEFT JOIN tercero_telefono tt ON tt.idTercero = rs.idTercero
+            LEFT JOIN telefono t ON tt.idTelefono = t.idTelefono
+            LEFT JOIN tercero_correo tc ON tc.idTercero = c.idTercero
+            LEFT JOIN correo c1 ON tc.idCorreo = c1.idCorreo
+            INNER JOIN factura f ON c.idCliente = f.idCliente
+            INNER JOIN tipo t1 ON t1.idTipo = f.idTipoFactura
+            INNER JOIN estado e ON f.idEstado = e.idEstado
+            INNER JOIN identificacion i ON i.idTercero = c.idTercero
+            WHERE t1.idTipo = 14
+            GROUP BY 1
+              ${search}  ${condicion}
+          `,
+          [],
+          (error, results, fields) => {
+            console.log('idProduct: ', Math.ceil(total_rows / data.limit));
+            
+            total_page = data.idCliente == null ? Math.ceil(total_rows / data.limit) : 1;
+            console.log("total_page: ", total_rows);
+
+            return error  ? callback(error)  : callback(null, results, total_page, total_rows);
+          }
+        );
+
+        return total_page;
+      }
+    );
+
+    console.log("cantidad: ", total_page);
+  } catch (error) {
+    console.error("error: ", error);
+    return "Ah ocurrido un error";
+  }
 }

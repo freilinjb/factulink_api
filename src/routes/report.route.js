@@ -8,6 +8,12 @@ router.get(
   checkToken,
   report.getInvoice
 )
+
+router.get(
+  "/report/cuentaPorCobrar",
+  checkToken,
+  report.getClientesCuentasPorCobrar
+)
   router.get(
     "/report/invoice/:numFactura",
     checkToken,

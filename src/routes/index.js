@@ -12,6 +12,7 @@ const identification = require('./identification.router');
 const comprobante = require('./comprobante.route');
 const billing = require('./billing.route');
 const report = require('./report.route');
+const business = require('./business.router');
 
 router.use(auth);
 router.use(user);
@@ -25,6 +26,7 @@ router.use(identification);
 router.use(comprobante);
 router.use(billing);
 router.use(report);
+router.use(business);
 
 
 module.exports = router;
