@@ -159,3 +159,7 @@ exports.getInvoice = async (data, callback) => {
     return "Ah ocurrido un error";
   }
 }
+
+exports.getClientesCuentasPorCobrar = async (data, callback) => {
+  
+}
