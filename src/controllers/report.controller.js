@@ -171,3 +171,40 @@ exports.getClientesCuentasPorCobrar = async (req, res) => {
     });
   });
 }
+
+exports.getFacturasPendientes = async (req, res) => {
+  const idCliente = req.params.idCliente;
+  report.getFacturasPendientes(idCliente, (err, results) => {
+    if(err) {
+      return res.status(500).json({
+        error: 1,
+        success: 0,
+        msg: "Ah ocurrido un error interno"
+      })
+    }
+
+    return res.status(200).json({
+      success: 1,
+      data: results
+    })
+  })
+}
+
+exports.getFacturasPorCliente = async (req, res) => {
+  let idCliente = req.params.idCliente;
+
+  report.getFacturasPorCliente(idCliente, (err, results) => {
+    if(err) {
+      return res.status(500).json({
+        error: 1,
+        success: 0,
+        msg: "Ah ocurrido un error interno"
+      })
+    }
+
+    return res.status(200).json({
+      success: 1,
+      data: results
+    })
+  });
+}

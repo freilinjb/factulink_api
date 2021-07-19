@@ -206,7 +206,7 @@ exports.getClientesCuentasPorCobrar = async (data, callback) => {
               t.descripcion AS telefono,
               c1.descripcion AS correo,
               i.descripcion AS identificacion,
-              e.descripcion
+              e.descripcion AS estado
             FROM cliente c
             LEFT JOIN urlfoto u ON u.idTercero = c.idTercero
             INNER JOIN razon_social rs ON rs.idTercero = c.idTercero
@@ -242,4 +242,63 @@ exports.getClientesCuentasPorCobrar = async (data, callback) => {
     console.error("error: ", error);
     return "Ah ocurrido un error";
   }
+}
+
+exports.getFacturasPendientes = async (idCliente, callback) => {
+  connection.query(
+    `SELECT  f.numFactura AS numFactura,
+      t.idTipo AS idTipoFactura,
+      t.descripcion AS tipoFactura,
+      f.NFC AS NFC,
+      DATE_FORMAT(f.fecha, '%Y-%m-%d %T') AS fecha,
+      c.idCliente AS idCliente,
+      DATE_FORMAT(DATE_ADD(f.fecha, INTERVAL c.diasCredito DAY),'%Y-%m-%d %T') AS vencimiento,
+      DATEDIFF(CURRENT_TIMESTAMP() ,f.fecha) AS diferencia,
+      COALESCE(rs.nombre, rs.razonSocial) AS cliente,
+      COUNT(df.idProducto) AS cantidadProductom,
+      ROUND(SUM(((df.precio * df.cantidad) * 1.18)), 2) AS total,
+      (CASE WHEN (t.idTipo = 13) THEN 'Pagada' ELSE e.descripcion END) AS estado
+      FROM factura f
+      INNER JOIN detalle_factura df ON f.numFactura = df.numFactura
+      INNER JOIN cliente c ON f.idCliente = c.idCliente
+      INNER JOIN razon_social rs ON rs.idTercero = c.idTercero
+      INNER JOIN tipo t ON t.idTipo = f.idTipoFactura
+      INNER JOIN estado e ON f.idEstado = e.idEstado
+      WHERE t.idTipo = 14 AND c.idCliente = ${idCliente}
+    GROUP BY f.numFactura,t.idTipo,t.descripcion,f.NFC
+    `,
+    [idCliente],
+    (error, results, fields) => {
+      return error ? callback(error) : callback(null, results);
+    })
+}
+
+exports.getFacturasPorCliente = async (idCliente, callback) => {
+  connection.query(`
+      SELECT  
+      f.numFactura AS numFactura,
+      t.idTipo AS idTipoFactura,
+      t.descripcion AS tipoFactura,
+      f.NFC AS NFC,
+      DATE_FORMAT(f.fecha, '%Y-%m-%d %T') AS fecha,
+      c.idCliente AS idCliente,
+      DATE_FORMAT(DATE_ADD(f.fecha, INTERVAL c.diasCredito DAY),'%Y-%m-%d %T') AS vencimiento,
+      DATEDIFF(CURRENT_TIMESTAMP() ,f.fecha) AS diferencia,
+      COALESCE(rs.nombre, rs.razonSocial) AS cliente,
+      COUNT(df.idProducto) AS cantidadProductom,
+      ROUND(SUM(((df.precio * df.cantidad) * 1.18)), 2) AS total,
+      (CASE WHEN (t.idTipo = 13) THEN 'Pagada' ELSE e.descripcion END) AS estado
+      FROM factura f
+      INNER JOIN detalle_factura df ON f.numFactura = df.numFactura
+      INNER JOIN cliente c ON f.idCliente = c.idCliente
+      INNER JOIN razon_social rs ON rs.idTercero = c.idTercero
+      INNER JOIN tipo t ON t.idTipo = f.idTipoFactura
+      INNER JOIN estado e ON f.idEstado = e.idEstado
+      WHERE t.idTipo = 14 AND c.idCliente = ${idCliente}
+    GROUP BY f.numFactura,t.idTipo,t.descripcion,f.NFC;
+  `,
+  [],
+  (error, results, fields) => {
+    return error ? callback(error) : callback(null, results);
+  })
 }

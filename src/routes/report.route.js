@@ -14,6 +14,12 @@ router.get(
   checkToken,
   report.getClientesCuentasPorCobrar
 )
+
+router.get(
+  "/report/cuentaPorCobrar/:idCliente",
+  checkToken,
+  report.getFacturasPendientes
+)
   router.get(
     "/report/invoice/:numFactura",
     checkToken,
@@ -24,5 +30,11 @@ router.get(
   "/report/invoice_current",
   checkToken,
   report.getInvoiceCurrent
+);
+
+router.get(
+  "/report/invoiceByClient/:idCliente",
+  checkToken,
+  report.getFacturasPorCliente
 );
 module.exports = router;
