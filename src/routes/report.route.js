@@ -20,6 +20,13 @@ router.get(
   checkToken,
   report.getFacturasPendientes
 )
+
+router.post(
+  "/report/cuentaPorCobrar",
+  checkToken,
+  report.savePagos
+)
+
   router.get(
     "/report/invoice/:numFactura",
     checkToken,
@@ -37,4 +44,6 @@ router.get(
   checkToken,
   report.getFacturasPorCliente
 );
+
+
 module.exports = router;

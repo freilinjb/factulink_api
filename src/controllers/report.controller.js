@@ -190,6 +190,94 @@ exports.getFacturasPendientes = async (req, res) => {
   })
 }
 
+exports.savePagos = async (req, res) => {
+  try {
+    const data = req.body;
+    const idCliente = req.body.idCliente;
+    const fecha = req.body.fecha;
+    let montoTotal = Number(req.body.monto);
+
+    report.getFacturasPendientes(idCliente, (error, results) => {
+      if (error) {
+        console.log("Error: ", error);
+        return res.status(500).json({
+          return: 1,
+          success: 0,
+          error: 1,
+          msg: "Ah ocurrido un error interno",
+        });
+      }
+      // console.log('Resultados: ', results);
+      let facturas = [];
+      let monto = montoTotal;
+      results.forEach((key, index) => {
+        if(monto > 0) {
+          // const abonar = montoTotal - key.total
+          if(monto >= key.total) {
+            facturas.push({
+              numFactura: Number(key.numFactura),
+              fecha: fecha,
+              abonar: Number(key.total.toFixed(2)),
+              estado: 2,
+            })
+          } else {
+            // console.log('Cumplio: ', monto);
+            // console.log('Cumplio2: ', montoTotal);
+            facturas.push({
+              numFactura: Number(key.numFactura),
+              fecha: fecha,
+              abonar: Number(monto.toFixed(2)),
+              estado: 1,
+            })
+          }
+          montoTotal -= Number(key.total.toFixed(2));
+          monto = montoTotal;
+        }
+      })
+
+      // console.log('Facturas afectadas: ', facturas.length);
+      // console.log('Facturas abonadas', facturas);
+      data.facturas = facturas;
+      console.log('Datis: ', data);
+      return;
+      report.savePago(data, (error, result) => {
+        return res.status(200).json({
+          success: 1,
+          data: result,
+        });
+      });
+
+      return res.status(200).json({
+        success: 1,
+        data: results,
+      });
+
+    });
+
+    return;
+    report.saveCustomer(data, (error, result) => {
+      if (error) {
+        console.log("Error: ", error);
+        return res.status(500).json({
+          return: 1,
+          success: 0,
+          error: 1,
+          msg: "Ah ocurrido un error interno",
+        });
+      }
+
+      return res.status(200).json({
+        success: 1,
+        data: result,
+      });
+    });
+  } catch (error) {
+    console.log('Errir: ', error);
+    res.status(500).send(error);
+  }
+
+}
+
 exports.getFacturasPorCliente = async (req, res) => {
   let idCliente = req.params.idCliente;
 
