@@ -105,15 +105,15 @@
  * @method put
  */
 
+
+
 /**
- * @description Consultando Categoria
- * @url  http://localhost:4000/api/product/category/20
+ * @description Consultando las facturas pagadas o pendientes
+ * @url  http://localhost:4000/api/report/cuentaPorCobrar/8?estado=pagada
  * @method delete
  * nombre: ,
  * estado: 
  */
 
-
-
-
+/** */
 

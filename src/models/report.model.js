@@ -251,7 +251,8 @@ exports.getClientesCuentasPorCobrar = async (data, callback) => {
   }
 };
 
-exports.getFacturasPendientes = async (idCliente, callback) => {
+exports.getFacturasPendientes = async (data, callback) => {
+  console.log('Data:', data);
   connection.query(
     `SELECT  f.numFactura AS numFactura,
       t.idTipo AS idTipoFactura,
@@ -279,15 +280,16 @@ exports.getFacturasPendientes = async (idCliente, callback) => {
         SELECT dp.numFactura, SUM(dp.montoAplicado) AS pagado, dp.estado  FROM pago p
          INNER JOIN detalle_pago dp ON p.idPago = dp.idPago
          INNER JOIN factura f ON dp.numFactura = f.numFactura
-         WHERE f.idCliente = ${idCliente}
+         WHERE f.idCliente = ${Number(data.idCliente)}
          GROUP BY 1,3
        ) AS pg ON pg.numFactura = f.numFactura
 
-      WHERE t.idTipo = 14 AND c.idCliente = ${idCliente}
+      WHERE t.idTipo = 14 AND c.idCliente = ${ Number(data.idCliente)} ${data.estado == 'pendiente' ? ' AND e.idEstado = 1 ' : data.estado == 'pagadas' ? 'AND e.idEstado = 2' : '' }
     GROUP BY f.numFactura,t.idTipo,t.descripcion,f.NFC
     `,
-    [idCliente],
+    [data.idCliente],
     (error, results, fields) => {
+      console.log('Error: ', error);
       return error ? callback(error) : callback(null, results);
     }
   );
@@ -351,7 +353,7 @@ exports.getFacturasPorCliente = async (idCliente, callback) => {
       i.descripcion AS identificacion,
       COUNT(df.idProducto) AS cantidadProductom,
       ROUND(SUM(((df.precio * df.cantidad) * 1.18)), 2) AS total,
-      COALESCE(pg.pagado,0) AS pagado,
+      ROUND(COALESCE(pg.pagado,0),2) AS pagado,
       (CASE WHEN (t.idTipo = 13) THEN 'Pagada' ELSE e.descripcion END) AS estado
       FROM factura f
       INNER JOIN detalle_factura df ON f.numFactura = df.numFactura
@@ -380,25 +382,28 @@ exports.getFacturasPorCliente = async (idCliente, callback) => {
   );
 };
 
-exports.savePago = async (facturas, callback) => {
+exports.savePago = async (data, callback) => {
   try {
-    return;
+
+    // return;
     connection.beginTransaction((error) => {
       if (error) {
         return connection.rollback(() => {
           throw error;
         });
       }
-
+      console.log('Error: ', data);
       connection.query(
-        `INSERT INTO pago(idUsuario, fecha, idFormaPago, idBanco, observacion)
-    VALUES(?,?,?,?,?)`,
+        `INSERT INTO pago(idUsuario, idCliente, fecha, monto, idFormaPago, idBanco, observacion)
+    VALUES(?,?,DATE_FORMAT(?,'%Y-%m-%d %T'),?,?,?,?)`,
         [
-          data.idUsuario,
+          1,
           data.idCliente,
-          data.idTipoFactura,
-          data.idCliente, //La funcion verifica el tipo de comprobante
-          data.descuento,
+          data.fecha,
+          data.monto.toFixed(2),
+          data.formaPago, //La funcion verifica el tipo de comprobante
+          1, //La funcion verifica el tipo de comprobante
+          data.idBanco ? data.idBanco : 1,
           data.observacion,
         ],
         (error, result, fields) => {
@@ -407,88 +412,55 @@ exports.savePago = async (facturas, callback) => {
               console.log("Error2: ", error);
               return error;
             });
+
           }
-          numFactura = result.insertId;
 
-          connection.query(
-            `UPDATE adquisicion_comprobante ac SET ac.secuencia = (ac.secuencia)+1 WHERE ac.tipoComprobante = getTipoComprobante(?) AND ac.estado IS TRUE`,
-            [data.idCliente],
-            (error, resultAdquisicion, fields) => {
-              if (error) {
-                console.log("Error: UPDATE: ", error);
-                return error;
-              }
-            }
-          );
+          idPago = result.insertId;
+          // console.log('Pago: ', idPago);
 
-          data.productos.forEach((producto, index) => {
-            const { idProducto, precio, cantidad, itbis } = producto;
-            const numFactura = result.insertId;
+          data.facturas.forEach((factura, index) => {
+            const { numFactura, abonar, estado } = factura;
+            // const numFactura = result.insertId;
             console.log(`INSERT ${result.insertId} added`);
 
-            connection.query(
-              `INSERT INTO detalle_factura(numFactura, idProducto, precio, cantidad, itbis) VALUES(?,?,?,?,?)`,
-              [numFactura, idProducto, precio, cantidad, itbis],
-              (error, rs, fields) => {
-                if (error) {
-                  console.log("Error: ", error);
-                  return connection.rollback(() => {
-                    return callback(error);
-                  });
+            if(estado == 2) {
+              connection.query(
+                `UPDATE factura f SET f.idEstado = 2 WHERE f.numFactura = ${numFactura}`,
+                [],
+                (er, rs, fields) => {
+                  // console.log('Resultados: ', rs);
                 }
-
-                connection.commit((err) => {
-                  if (err) {
-                    return connection.rollback(() => {
-                      return callback(error);
-                    });
-                  }
-                });
-              }
-            );
-
-            /**
-             * ACTUALIZAR EL STOCK DE LOS PRODUCTOS
-             */
-
-            connection.query(
-              `UPDATE producto p SET p.stockInicial = p.stockInicial - ? WHERE p.idProducto = ?`,
-              [Number(cantidad), Number(idProducto)],
-              (error, rs, fields) => {
-                if (error) {
-                  console.log("Error: ", error);
-                  return connection.rollback(() => {
-                    return callback(error);
-                  });
-                }
-
-                connection.commit((err) => {
-                  if (err) {
-                    return connection.rollback(() => {
-                      return callback(error);
-                    });
-                  }
-                });
-              }
-            );
-
-            /**
-             * FIN DE LA ACTUALIZACION
-             */
-          });
-
-          connection.commit((err) => {
-            if (err) {
-              return connection.rollback(() => {
-                return callback(err);
-              });
+              );
             }
+
+            connection.query(
+              `INSERT INTO detalle_pago(idPago, numFactura, montoAplicado) VALUES(?,?,?)`,
+              [idPago, numFactura, abonar],
+              (er, rs, fields) => {
+                if (er) {
+                  console.log("Error: ", er);
+                  return connection.rollback(() => {
+                    return callback(er);
+                  });
+                }
+              }
+            );
           });
-          return callback(null, result);
+
+          return callback(null, idPago);
+
+          // connection.commit((err) => {
+          //   if (err) {
+          //     return connection.rollback(() => {
+          //       return callback(err);
+          //     });
+          //   }
+          // });
+          // return callback(null, result);
         }
       );
     });
-  } catch (error) {
-    console.log("Error: ", error);
+  } catch (error2) {
+    console.log("Error: ", error2);
   }
 };

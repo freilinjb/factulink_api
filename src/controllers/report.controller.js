@@ -173,8 +173,12 @@ exports.getClientesCuentasPorCobrar = async (req, res) => {
 }
 
 exports.getFacturasPendientes = async (req, res) => {
-  const idCliente = req.params.idCliente;
-  report.getFacturasPendientes(idCliente, (err, results) => {
+  let data = {};
+  data.idCliente = req.params.idCliente;
+  data.estado = req.query.estado;
+  console.log('Estado: ', data);
+
+  report.getFacturasPendientes(data, (err, results) => {
     if(err) {
       return res.status(500).json({
         error: 1,
@@ -194,10 +198,11 @@ exports.savePagos = async (req, res) => {
   try {
     const data = req.body;
     const idCliente = req.body.idCliente;
+    data.idCliente = idCliente;
     const fecha = req.body.fecha;
     let montoTotal = Number(req.body.monto);
 
-    report.getFacturasPendientes(idCliente, (error, results) => {
+    report.getFacturasPendientes(data, (error, results) => {
       if (error) {
         console.log("Error: ", error);
         return res.status(500).json({
@@ -210,23 +215,27 @@ exports.savePagos = async (req, res) => {
       // console.log('Resultados: ', results);
       let facturas = [];
       let monto = montoTotal;
+      let monto2 = 0;
       results.forEach((key, index) => {
         if(monto > 0) {
+        console.log('index: ', index);
+
           // const abonar = montoTotal - key.total
-          if(monto >= key.total) {
+          if(monto >= Number(key.total) - Number(key.pagado) ) {
+            monto2 = key.total - Number(key.pagado).toFixed(2);
             facturas.push({
               numFactura: Number(key.numFactura),
               fecha: fecha,
-              abonar: Number(key.total.toFixed(2)),
+              abonar: Number(monto2.toFixed(2)),
+              total: Number(key.total.toFixed(2)),
               estado: 2,
             })
           } else {
-            // console.log('Cumplio: ', monto);
-            // console.log('Cumplio2: ', montoTotal);
             facturas.push({
               numFactura: Number(key.numFactura),
               fecha: fecha,
               abonar: Number(monto.toFixed(2)),
+              total: Number(key.total.toFixed(2)),
               estado: 1,
             })
           }
@@ -238,8 +247,9 @@ exports.savePagos = async (req, res) => {
       // console.log('Facturas afectadas: ', facturas.length);
       // console.log('Facturas abonadas', facturas);
       data.facturas = facturas;
-      console.log('Datis: ', data);
-      return;
+      console.log('Resultados: ', data);
+      // return;
+      // return;
       report.savePago(data, (error, result) => {
         return res.status(200).json({
           success: 1,
@@ -247,30 +257,30 @@ exports.savePagos = async (req, res) => {
         });
       });
 
-      return res.status(200).json({
-        success: 1,
-        data: results,
-      });
+      // return res.status(200).json({
+      //   success: 1,
+      //   data: data,
+      // });
 
     });
 
-    return;
-    report.saveCustomer(data, (error, result) => {
-      if (error) {
-        console.log("Error: ", error);
-        return res.status(500).json({
-          return: 1,
-          success: 0,
-          error: 1,
-          msg: "Ah ocurrido un error interno",
-        });
-      }
+    // return;
+    // report.saveCustomer(data, (error, result) => {
+    //   if (error) {
+    //     console.log("Error: ", error);
+    //     return res.status(500).json({
+    //       return: 1,
+    //       success: 0,
+    //       error: 1,
+    //       msg: "Ah ocurrido un error interno",
+    //     });
+    //   }
 
-      return res.status(200).json({
-        success: 1,
-        data: result,
-      });
-    });
+    //   return res.status(200).json({
+    //     success: 1,
+    //     data: result,
+    //   });
+    // });
   } catch (error) {
     console.log('Errir: ', error);
     res.status(500).send(error);
