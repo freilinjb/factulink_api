@@ -45,5 +45,22 @@ router.get(
   report.getFacturasPorCliente
 );
 
+router.get(
+  "/report/pagos",
+  checkToken,
+  report.getPagos
+);
+
+router.get(
+  "/report/pagos/:idPago",
+  checkToken,
+  report.getPagoPorID
+);
+
+router.get(
+  "/report/pagos_factura/:numFactura",
+  checkToken,
+  report.getPagoPorFactura
+);
 
 module.exports = router;
