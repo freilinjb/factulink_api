@@ -620,3 +620,168 @@ exports.getPagoPorFactura = async(numFactura, callback) => {
     return error ? callback(error) : callback(null, results);
   })
 }
+
+exports.getCompras = async (data, callback) => {
+  try {
+    console.log("Pruebas de envio de datos");
+    let condicion = " WHERE 1 = 1 ";
+    let search = "";
+    let limit = "";
+
+    if (data.numFactura == null && data.limit && data.offset >= 0) {
+      //Valida si es una busqueda que se va arelizar
+      console.log("Validacion sin completar");
+      if (data.cliente) {
+        condicion += `  AND v.idProveedor = ${data.cliente}`;
+      }
+      if (data.tipoFactura) {
+        condicion += ` AND v.idTipoFactura = ${data.tipoFactura}`;
+      }
+      if (data.fechaDesde) {
+        condicion += ` AND (STR_TO_DATE( v.fecha,'%Y-%m-%d') BETWEEN '${data.fechaDesde}' AND '${data.fechaHasta}')`;
+      }
+      limit = ` LIMIT ${data.limit}  OFFSET ${data.offset} `;
+    }
+
+    // condicion = idCliente ? `WHERE c.idCliente = ${idCliente}` : "";
+    console.log("search: ", search);
+
+    let total_page = 0;
+    let total_rows = 0;
+    connection.query(
+      `SELECT COUNT(1) AS cantidad FROM compra_v v ${condicion}`,
+      [],
+      async (error, results, fields) => {
+        // total_page = results[0].cantidad;
+        if (error) {
+          console.error("error: ", error);
+          return callback(error);
+        }
+
+        if (results.length > 0) {
+          console.log("prueba: ", results);
+          total_rows = results[0].cantidad;
+        } else {
+          total_rows = 0;
+          console.log("length: ", results);
+        }
+
+        console.log("Condicion: ", condicion);
+        console.log("Search: ", limit);
+        console.log("cantidad total: ", total_rows);
+        connection.query(
+          `SELECT 
+              v.idCompra,
+              v.documento,
+              v.idTipoFactura,
+              v.tipoCompra,
+              v.fecha,
+              v.idProveedor,
+              v.proveedor,
+              v.telefono, 
+              v.correo
+            FROM compra_v v
+            ${condicion}
+            ${limit}
+          `,
+          [],
+          (error, results, fields) => {
+            console.log("Error: ", error);
+            // console.log('numFactura: ', Math.ceil(total_rows / data.limit));
+
+            total_page =
+              data.numFactura == null ? Math.ceil(total_rows / data.limit) : 1;
+            console.log("total_page: ", total_rows);
+
+            return error
+              ? callback(error)
+              : callback(null, results, total_page, total_rows);
+          }
+        );
+
+        return total_page;
+      }
+    );
+
+    console.log("cantidad: ", total_page);
+  } catch (error) {
+    console.error("error: ", error);
+    return "Ah ocurrido un error";
+  }
+};
+
+exports.saveCompras = async (data, callback) => {
+  try {
+
+    // return;
+    // console.log('Data:', data);
+    // return;
+    connection.beginTransaction((error) => {
+      if (error) {
+        console.log('Error: ', error);
+        return connection.rollback(() => {
+          throw error;
+        });
+      }
+      connection.query(
+        `INSERT INTO compra(documento, fecha, idProveedor, idTipoFactura, idAlmacen, garantia, diasGarantia, idEstadoCompra)
+    VALUES(?,DATE_FORMAT(?,'%Y-%m-%d %T'),?,?,?,?,?,?)`,
+        [
+          data.documento,
+          data.fecha,
+          data.idProveedor,
+          data.idTipoFactura,
+          data.idAlmacen,
+          data.garantia,
+          data.diasGarantia,
+          data.idEstadoCompra,
+        ],
+        (error, result, fields) => {
+          if (error) {
+            console.log('Error: ', error);
+            return connection.rollback(() => {
+              console.log("Error2: ", error);
+              return error;
+            });
+
+          }
+
+          idCompra = result.insertId;
+          // console.log('Pago: ', idPago);
+
+          data.productos.forEach((producto, index) => {
+            const { idProducto, precio ,cantidad, itbis } = producto;
+            console.log('Producto: ', producto);
+            // const idCompra = result.insertId;
+            // console.log(`UPDATE producto p SET p.stockInicial = p.stockInicial+${Number(cantidad)} WHERE p.idProducto = ${idProducto}`);
+            connection.query(
+              `UPDATE producto p SET p.stockInicial = p.stockInicial+${Number(cantidad)} WHERE p.idProducto = ${idProducto}`,
+              [],
+              (er2, rs2, fields2) => {
+              //   // return (er) ? callback(er) : callback(null, rs);
+              //   // console.log('Resultados: ', rs);
+              }
+            );
+            // console.log(index, query);
+            connection.query(
+              `INSERT INTO detalle_compra(idCompra, idProducto, precio, cantidad, itbis) VALUES(?,?,?,?,?)`,
+              [idCompra, idProducto, precio, cantidad, itbis],
+              (er, rs, fields) => {
+                if (er) {
+                  console.log("Error: ", er);
+                  return connection.rollback(() => {
+                    return callback(er);
+                  });
+                }
+              }
+            );
+          });
+
+          return callback(null, idCompra);
+        }
+      );
+    });
+  } catch (error2) {
+    console.log("Error: ", error2);
+  }
+};

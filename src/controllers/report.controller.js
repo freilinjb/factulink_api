@@ -395,3 +395,99 @@ exports.getPagoPorFactura = async (req, res) => {
     });
   })
 }
+
+
+exports.getCompras = async (req, res) => {
+  let numFactura = null;
+  let data = {};
+  console.log('Data current:');
+  numFactura = req.params.numFactura ? req.params.numFactura : null;
+
+
+  data.numFactura = numFactura;
+  data.page = req.query.page;
+  data.search = req.query.search;
+  data.limit = req.query.limit;
+
+  data.cliente = req.query.cliente ? Number(req.query.cliente) : null;
+  data.tipoFactura = req.query.tipoFactura ? Number(req.query.tipoFactura) : null;
+
+  data.fechaDesde = req.query.fechaDesde ? req.query.fechaDesde : null;
+  data.fechaHasta = req.query.fechaHasta ? req.query.fechaHasta : null;
+  
+
+  console.log('data: ', data);
+  if(!data.limit) {
+    data.limit = 20;
+  }
+  data.offset = (data.page -1 ) * data.limit;
+  report.getCompras(data, (err, results, total_page, total_rows) => {
+    if (err) {
+      return res.status(500).json({
+        error: 1,
+        success: 0,
+        msg: "Ah ocurrido un error interno",
+      });
+    }
+
+    if(data.page) {
+      return res.status(200).json({
+        success: 1,
+        data: {
+          total_page : Math.ceil(total_page),
+          page_cout: results.length,
+          page_number: Number(data.page),
+          total_rows: Number(total_rows),
+          results: results,
+        },
+      });
+    } 
+
+    return res.status(200).json({
+      success: 1,
+      data: results
+    });
+  });
+}
+
+exports.saveCompras = async (req, res) => {
+  try {
+    const data = req.body;
+    data.documento = req.body.documento;
+    data.fecha = req.body.fecha;
+    data.idProveedor = req.body.idProveedor;
+    data.idTipoFactura = req.body.idTipoFactura;
+    data.idAlmacen = req.body.idAlmacen;
+    data.garantia = req.body.garantia;
+    data.diasGarantia = req.body.diasGarantia;
+    data.idEstadoCompra = req.body.idEstadoCompra;
+    data.productos = req.body.productos;
+
+    // console.log('Datos: ', data);
+
+
+    report.saveCompras(data, (error, results) => {
+      if (error) {
+        console.log("Error: ", error);
+        return res.status(500).json({
+          return: 1,
+          success: 0,
+          error: 1,
+          msg: "Ah ocurrido un error interno",
+        });
+      }
+      return res.status(200).json({
+        success: 1,
+        data: {
+          msg: "Se ha registrado de forma correcta !!",
+          status: 200,
+        },
+      });
+    });
+
+  } catch (error) {
+    console.log('Errir: ', error);
+    res.status(500).send(error);
+  }
+
+}

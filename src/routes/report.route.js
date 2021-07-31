@@ -63,4 +63,17 @@ router.get(
   report.getPagoPorFactura
 );
 
+router.get(
+  "/report/compras",
+  checkToken,
+  report.getCompras
+);
+
+
+router.post(
+  "/report/compra",
+  checkToken,
+  report.saveCompras
+);
+
 module.exports = router;
