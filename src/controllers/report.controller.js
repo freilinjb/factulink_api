@@ -481,6 +481,7 @@ exports.saveCompras = async (req, res) => {
         data: {
           msg: "Se ha registrado de forma correcta !!",
           status: 200,
+          idCompra: results,
         },
       });
     });

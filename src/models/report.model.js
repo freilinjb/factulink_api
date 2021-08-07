@@ -447,15 +447,17 @@ exports.savePago = async (data, callback) => {
             );
           });
 
+
+          connection.commit((err) => {
+            if (err) {
+              return connection.rollback(() => {
+                return callback(err);
+              });
+            }
+          });
+
           return callback(null, idPago);
 
-          // connection.commit((err) => {
-          //   if (err) {
-          //     return connection.rollback(() => {
-          //       return callback(err);
-          //     });
-          //   }
-          // });
           // return callback(null, result);
         }
       );
@@ -679,7 +681,10 @@ exports.getCompras = async (data, callback) => {
               v.idProveedor,
               v.proveedor,
               v.telefono, 
-              v.correo
+              v.correo,
+              v.idEstado,
+              v.estado,
+              v.monto
             FROM compra_v v
             ${condicion}
             ${limit}
@@ -714,15 +719,15 @@ exports.saveCompras = async (data, callback) => {
   try {
 
     // return;
-    // console.log('Data:', data);
+    console.log('Data:', data);
     // return;
-    connection.beginTransaction((error) => {
-      if (error) {
-        console.log('Error: ', error);
-        return connection.rollback(() => {
-          throw error;
-        });
-      }
+    // connection.beginTransaction((error) => {
+    //   if (error) {
+    //     console.log('Error: ', error);
+    //     return connection.rollback(() => {
+    //       throw error;
+    //     });
+    //   }
       connection.query(
         `INSERT INTO compra(documento, fecha, idProveedor, idTipoFactura, idAlmacen, garantia, diasGarantia, idEstadoCompra)
     VALUES(?,DATE_FORMAT(?,'%Y-%m-%d %T'),?,?,?,?,?,?)`,
@@ -765,14 +770,14 @@ exports.saveCompras = async (data, callback) => {
             // console.log(index, query);
             connection.query(
               `INSERT INTO detalle_compra(idCompra, idProducto, precio, cantidad, itbis) VALUES(?,?,?,?,?)`,
-              [idCompra, idProducto, precio, cantidad, itbis],
+              [idCompra, idProducto, precio, cantidad, Number(((precio * cantidad) * 0.18).toFixed(2))],
               (er, rs, fields) => {
-                if (er) {
-                  console.log("Error: ", er);
-                  return connection.rollback(() => {
-                    return callback(er);
-                  });
-                }
+                // if (er) {
+                //   console.log("Error: ", er);
+                //   return connection.rollback(() => {
+                //     return callback(er);
+                //   });
+                // }
               }
             );
           });
@@ -780,7 +785,7 @@ exports.saveCompras = async (data, callback) => {
           return callback(null, idCompra);
         }
       );
-    });
+    // });
   } catch (error2) {
     console.log("Error: ", error2);
   }

@@ -4,21 +4,25 @@ exports.getProduct = async (data, callback) => {
   try {
     let condicion = '';
     let search = '';
-
+    
     // console.log(`prueba: ${data.limit}, ${data.offset}`);
 
 
     condicion = data.idProducto ? `WHERE p.idProducto = ${data.idProducto}`   : "";
-    if (data.idProducto == null && data.limit && data.offset >= 0) {
-
-      //Valida si es una busqueda que se va arelizar
+    
     if(data.search) {
 
       data.search = data.search.trim();
       search = ` WHERE concat(p.codigo,p.nombre, p.marca, p.categoria, p.subcategoria, p.stockInicial,p.stockMinimo,p.reorden,p.precioVenta, p.precioCompra, p.incluyeItbis,p.creado_por) LIKE '%${data.search}%' `; 
     }
+
+    if (data.idProducto == null && data.limit && data.offset >= 0) {
+
+      //Valida si es una busqueda que se va arelizar
+    
       condicion += ` LIMIT ${data.limit}  OFFSET ${data.offset} `;
     }
+    console.log('data: ', search);
 
     
     let total_page = 0;
