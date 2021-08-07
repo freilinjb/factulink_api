@@ -58,6 +58,12 @@ router.get(
 );
 
 router.get(
+  "/report/pagos/documento/:idPago",
+  checkToken,
+  report.getPagoPorIDDocumento
+);
+
+router.get(
   "/report/pagos_factura/:numFactura",
   checkToken,
   report.getPagoPorFactura

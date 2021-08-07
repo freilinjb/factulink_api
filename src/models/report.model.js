@@ -418,13 +418,13 @@ exports.savePago = async (data, callback) => {
           idPago = result.insertId;
           // console.log('Pago: ', idPago);
 
-          data.facturas.forEach((factura, index) => {
+          data.facturas.forEach( async (factura, index) => {
             const { numFactura, abonar, estado } = factura;
             // const numFactura = result.insertId;
             console.log(`INSERT ${result.insertId} added`);
 
             if(estado == 2) {
-              connection.query(
+             connection.query(
                 `UPDATE factura f SET f.idEstado = 2 WHERE f.numFactura = ${numFactura}`,
                 [],
                 (er, rs, fields) => {
@@ -432,7 +432,7 @@ exports.savePago = async (data, callback) => {
                 }
               );
             }
-
+            console.log(`INSERT INTO detalle_pago(idPago, numFactura, montoAplicado) VALUES(${idPago},${numFactura},${abonar})`)
             connection.query(
               `INSERT INTO detalle_pago(idPago, numFactura, montoAplicado) VALUES(?,?,?)`,
               [idPago, numFactura, abonar],
@@ -790,3 +790,17 @@ exports.saveCompras = async (data, callback) => {
     console.log("Error: ", error2);
   }
 };
+
+
+exports.getPagoPorIDDocumento = async(idPago, callback) => {
+  connection.query(`
+  SELECT p.idPago, p.fecha, p.monto, f.descripcion AS formaPago, COALESCE(cv.nombre, cv.razonSocial) AS cliente, cv.RNC, cv.telefono, cv.correo, dp.numFactura, dp.montoAplicado  FROM pago p
+  INNER JOIN detalle_pago dp ON p.idPago = dp.idPago
+  INNER JOIN formapago f ON p.idFormaPago = f.idFormaPago
+  INNER JOIN cliente_v cv ON cv.idCliente = p.idCliente
+  WHERE p.idPago = ${idPago}
+  `,[],
+  (error, results, fields) => {
+    return error ? callback(error) : callback(null, results);
+  })
+}

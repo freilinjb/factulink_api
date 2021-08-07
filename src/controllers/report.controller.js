@@ -202,6 +202,9 @@ exports.savePagos = async (req, res) => {
     const fecha = req.body.fecha;
     let montoTotal = Number(req.body.monto);
 
+    // console.log('data: ', data);
+    // return;
+
     report.getFacturasPendientes(data, (error, results) => {
       if (error) {
         console.log("Error: ", error);
@@ -216,17 +219,21 @@ exports.savePagos = async (req, res) => {
       let facturas = [];
       let monto = montoTotal;
       let monto2 = 0;
+      // console.log('monto2: ', monto2);
+      
       results.forEach((key, index) => {
-        if(monto > 0) {
-        console.log('index: ', index);
+        if(monto > 0 && key.estado == 'pendiente') {
+        // console.log('index: ', key);
 
           // const abonar = montoTotal - key.total
-          if(monto >= Number(key.total) - Number(key.pagado) ) {
-            monto2 = key.total - Number(key.pagado).toFixed(2);
+          if(monto >= (Number(key.total) - Number(key.pagado)) ) {
+            const valor = key.total - Number(key.pagado).toFixed(2);
+            console.log('monto2: ', Number(valor.toFixed(2)));
+            console.log('key.pagado: ', Number(key.total.toFixed(2)));
             facturas.push({
               numFactura: Number(key.numFactura),
               fecha: fecha,
-              abonar: Number(monto2.toFixed(2)),
+              abonar: (key.total - Number(key.pagado).toFixed(2)),
               total: Number(key.total.toFixed(2)),
               estado: 2,
             })
@@ -246,9 +253,9 @@ exports.savePagos = async (req, res) => {
 
       // console.log('Facturas afectadas: ', facturas.length);
       // console.log('Facturas abonadas', facturas);
-      data.facturas = facturas;
-      console.log('Resultados: ', data);
       // return;
+      data.facturas = facturas;
+      // console.log('Resultados: ', data);
       // return;
       report.savePago(data, (error, result) => {
         if(error) {
@@ -364,6 +371,24 @@ exports.getPagoPorID = async (req, res) => {
   let idPago = req.params.idPago ? req.params.idPago : null;
 
   report.getPagoPorID(idPago, (err, results) => {
+    if(err) {
+      return res.status(500).json({
+        error: 1,
+        msg: "Ah ocurrido un error",
+      });
+    }
+
+    return res.status(200).json({
+      success: 1,
+      data: results
+    });
+  })
+}
+
+exports.getPagoPorIDDocumento = async (req, res) => {
+  let idPago = req.params.idPago ? req.params.idPago : null;
+
+  report.getPagoPorIDDocumento(idPago, (err, results) => {
     if(err) {
       return res.status(500).json({
         error: 1,
