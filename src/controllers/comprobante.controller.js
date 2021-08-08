@@ -46,6 +46,25 @@ exports.getComprobantes = (req, res) => {
   });
 };
 
+exports.getComprobasByTipo = (req, res) => {
+  const tipoComprobante = req.params.tipoComprobante;
+
+  comprobante.getComprobasByTipo(tipoComprobante, (err, results) => {
+    if(err) {
+      console.log('Error: ', err);
+      return res.status(500).json({
+        error: 1,
+        msg: "Ah ocurrido un error",
+      });
+    }
+
+    return res.status(200).json({
+      success: 1,
+      data: results,
+    });
+  });
+}
+
 exports.saveComprobantes = (req, res) => {
   try {
     const data = req.body;

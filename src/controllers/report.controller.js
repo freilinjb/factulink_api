@@ -300,6 +300,7 @@ exports.savePagos = async (req, res) => {
     res.status(500).send(error);
   }
 
+  
 }
 
 exports.getFacturasPorCliente = async (req, res) => {

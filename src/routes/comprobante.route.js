@@ -7,6 +7,7 @@ const { body, validationResult } = require("express-validator");
 const { validateComprobante } = require("../middlewares/validateComprobante");
 
 router.get('/comprobante', checkToken, comprobante.getComprobantes);
+router.get('/comprobante/report/:tipoComprobante', checkToken, comprobante.getComprobasByTipo);
 router.get('/comprobante/:id', checkToken, comprobante.getComprobantes);
 router.post('/comprobante', [
     checkToken,

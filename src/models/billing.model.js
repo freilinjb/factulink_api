@@ -39,6 +39,16 @@ exports.savebilling = async (data, callback) => {
           }
         });
 
+        //PRUEBA
+        // connection.query(`UPDATE adquisicion_comprobante ac SET ac.secuencia = ac.secuencia+1 WHERE ac.tipoComprobante = (SELECT c.tipoComprobante FROM cliente c WHERE c.idCliente = ?);`,
+        // [data.idCliente],
+        // (error, resultAdquisicion, fields) => {
+        //   if(error) {
+        //     console.log('Error: UPDATE: ', error);
+        //     return error;
+        //   }
+        // });
+        /*PRUEBA */
         data.productos.forEach((producto, index) => {
           const { idProducto, precio, cantidad, itbis } = producto;
           const numFactura = result.insertId;

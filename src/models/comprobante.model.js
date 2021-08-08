@@ -77,6 +77,21 @@ exports.getComprobantes = async (data, callback) => {
   }
 };
 
+exports.getComprobasByTipo = async (tipoComprobante, callback) => {
+  connection.query(`
+  SELECT  ac.idAquisicion,c.tipoComprobante, ac.vencimiento,c.descripcion,c.encabezado, c.tipo, c.cantidadMinima, ac.inicio, ac.final, SUM(ac.final - ac.inicio) AS adquirida, ac.secuencia, CASE WHEN ac.estado IS TRUE THEN 1 ELSE 0 END AS estado FROM comprobante c
+  INNER JOIN adquisicion_comprobante ac ON c.tipoComprobante = ac.tipoComprobante
+  WHERE c.tipoComprobante = ${tipoComprobante}
+  GROUP BY 1,2,3,4,5,6,7,8,9,11,12
+  `,
+  [], 
+  (error, results, fields) => {
+    return (error) ? callback(error) : callback(null, results);
+  });
+}
+
+
+
 exports.saveComprobantes = async (data, callback) => {
   try {
     console.log('saveComprobantes: ', data);
