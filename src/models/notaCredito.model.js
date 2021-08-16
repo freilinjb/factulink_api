@@ -227,6 +227,72 @@ exports.getFacturas = async (numFactura,callback) => {
     }
 }
 
+exports.registrarNotaCredito = async = (datos, callback) => {
+    
+    console.log('Datos: ', datos);
+    // return;
+    connection.query(`INSERT INTO notacredito(idUsuario, NCF, fecha, numFactura, observacion)
+    VALUES(?,getNFC(4),CURRENT_DATE(), ?, ?)`,
+    [
+        datos.idUsuario,
+        datos.numFactura,
+        datos.observacion,
+    ],
+    (error, results, fields) => {
+        if(error) {
+            console.log('Error: ', error);
+            return callback(error);
+        }
+  
+        const notaCredito = results.insertId;
+
+        if(datos.productos.length > 0) {
+           datos.productos.forEach((key, index) => {
+
+                connection.query(`INSERT INTO detalle_notacredito(notaCredito, idProducto, cantidad, precio)
+                                VALUES(?,?,?,?)`,
+                [notaCredito, key.idProducto, key.cantidad, key.precio],
+                    (err, rs, f) => {
+                    if(err) {
+                        console.log('Error: ', err);
+                        return callback(err);
+                    }
+                });
+
+                connection.query(`UPDATE producto p SET p.stockInicial = p.stockInicial+${key.cantidad} WHERE p.idProducto = ${key.idProducto}`,
+                [],
+                    (err, rs, f) => {
+                    if(err) {
+                        console.log('Error: ', err);
+                        return callback(err);
+                    }
+                });
+
+                connection.query(`UPDATE detalle_factura df SET df.devuelto = TRUE WHERE df.numFactura = ${datos.numFactura} AND df.idProducto = ${key.idProducto};`,
+                [],
+                    (err, rs, f) => {
+                    if(err) {
+                        console.log('Error: ', err);
+                        return callback(err);
+                    }
+                });
+           });
+        }
+        
+  
+        connection.query(`UPDATE adquisicion_comprobante ac SET ac.secuencia = (ac.secuencia)+1 WHERE ac.tipoComprobante = 4 AND ac.estado IS TRUE`,
+          [],
+          (error, resultAdquisicion, fields) => {
+            if(error) {
+              console.log('Error: UPDATE: ', error);
+              return error;
+            }
+          });
+          
+        return callback(null, results);
+    });
+  }
+
 exports.getCxPProveedor = async (idProveedor, callback) => {
     try {
         connection.query(`

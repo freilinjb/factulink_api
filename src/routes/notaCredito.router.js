@@ -10,6 +10,12 @@ router.get(
     notaCredito.getNotaCredito
 );
 
+router.post(
+    "/nota_credito",
+    checkToken,
+    notaCredito.registrarNotaCredito
+);
+
 router.get(
     "/nota_credito/facturas/:id",
     checkToken,
@@ -21,6 +27,8 @@ router.get(
     checkToken,
     notaCredito.getFacturas
 );
+
+
 
 
 

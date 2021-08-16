@@ -172,11 +172,13 @@ exports.getInvoiceByNumber = async (numFactura, callback) => {
     i.descripcion AS identificacion,
     td.direccion,
     p.codigo, 
+    p.idProducto,
     p.nombre AS producto,
     df.precio, 
     df.cantidad,
     df.itbis,
     (df.precio * df.cantidad) * 1.18 AS importe,
+    CASE WHEN df.devuelto IS TRUE THEN 1 ELSE 0 END AS devuelto,
     c1.descripcion AS categoria,
     m.descripcion AS marca,
     s.descripcion AS subCategoria,
@@ -227,9 +229,6 @@ exports.getInvoiceCurrent = async (data, callback) => {
       }
       limit += ` LIMIT ${data.limit}  OFFSET ${data.offset} `;
     }
-
-    // condicion = idCliente ? `WHERE c.idCliente = ${idCliente}` : "";
-    // console.log("condicion: ", condicion);
 
     let total_page = 0;
     let total_rows = 0;

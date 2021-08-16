@@ -198,6 +198,28 @@ exports.getFacturas = async (req, res) => {
   });
 }
 
+
+exports.registrarNotaCredito = async (req, res) => {
+
+  const datos = req.body;
+
+  notaCredito.registrarNotaCredito(datos, (err, results) => {
+    if (err) {
+      return res.status(500).json({
+        error: 1,
+        success: 0,
+        msg: "Ah ocurrido un error interno",
+      });
+    }
+
+    return res.status(200).json({
+      success: 1,
+      msg: "Se ha registrado de forma correcta!!",
+      data: results.insertId,
+    });
+  });
+}
+
 exports.getCxPProveedor = async (req, res) => {
   let idProveedor = req.params.idProveedor;
 
@@ -218,45 +240,3 @@ exports.getCxPProveedor = async (req, res) => {
 
 }
 
-exports.pagarFactura = async (req, res) => {
-  const data = req.body;
-
-  notaCredito.pagarFactura(data, (error, result) => {
-    if(error) {
-      console.log('Error: ', error);
-      return res.status(500).json({
-        error: 1,
-        data: {
-          msg: "Ah ocurrido un error interno",
-        }
-      });
-    }
-
-    return res.status(200).json({
-      success: 1,
-      data: result,
-    });
-  })
-
-}
-
-exports.getPagosCXP = async (req, res) => {
-  const idPago = req.params.id;
-
-  notaCredito.getPagosCXP(idPago, (error, results) => {
-    if(error) {
-      console.log('Error: ', error);
-      return res.status(500).json({
-        error: 1,
-        data: {
-          msg: "Ah ocurrido un error interno",
-        }
-      });
-    }
-
-    return res.status(200).json({
-      success: 1,
-      data: results,
-    });
-  });
-}
