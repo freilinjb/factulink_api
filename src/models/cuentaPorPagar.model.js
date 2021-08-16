@@ -157,17 +157,19 @@ exports.getCuentaPorPagarPorProveedor = async (idProveedor, callback) => {
         pv.telefono, 
         pv.correo, 
         SUM(dc.precio * dc.cantidad) AS total,
-        COALESCE(SUM(pc.monto),0) AS pagado,
+        COALESCE((
+            SELECT SUM(pc.monto) FROM pago_compra pc WHERE pc.idCompra = c.idCompra
+          ),0) AS pagado,
+
         CASE WHEN c.garantia IS TRUE THEN 1 ELSE 0 END AS garantia, 
         e.descripcion AS estado 
         FROM compra c
         INNER JOIN detalle_compra dc ON c.idCompra = dc.idCompra 
         INNER JOIN proveedor_v pv ON pv.idProveedor = c.idProveedor
         INNER JOIN almacen a ON c.idAlmacen = a.idAlmacen
-        LEFT JOIN pago_compra pc ON c.idCompra = pc.idCompra
         INNER JOIN estado e ON e.idEstado = c.idEstadoCompra
         WHERE pv.idProveedor = ${idProveedor}
-        GROUP BY 1,2,3,4,5,6,7,8,11,12
+        GROUP BY 1,2,3,4,5,6,7
         ORDER BY 3`
     ,[],
     (error, results, fields) => {
@@ -324,6 +326,35 @@ exports.pagarFactura = async = (datos, callback) => {
                 }
             });
         }
+        return callback(null, results);
+    });
+}
+
+exports.getPagosCXP = async (idPago, callback) => {
+    connection.query(
+        `SELECT 
+        pc.idPago, 
+        pc.fecha AS fechaPago, 
+        pc.monto, 
+        CASE WHEN pc.saldada IS TRUE THEN 1 ELSE 0 END saldada,
+        pc.observacion, 
+        COALESCE(p.nombre, p.razonSocial) AS proveedor,
+        p.correo,
+        p.telefono,
+        t.descripcion AS formaPago,
+        e.descripcion AS estadoFactura
+       FROM pago_compra pc
+        INNER JOIN compra c ON pc.idCompra = c.idCompra
+        INNER JOIN proveedor_v p ON c.idProveedor = p.idProveedor
+        INNER JOIN estado e ON e.idEstado = c.idEstadoCompra
+        INNER JOIN tipo t ON t.idTipo = c.idTipoFactura
+      WHERE c.idCompra = ${idPago}`
+    ,[],
+    (error, results, fields) => {
+        if(error) {
+            console.log('Error: ', error);
+            return callback(error);
+        } 
         return callback(null, results);
     });
 }

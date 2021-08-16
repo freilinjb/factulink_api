@@ -16,6 +16,12 @@ router.get(
     checkToken,
     cuentaPorPagar.getCuentaPorPagarPorProveedor
 );
+
+router.get(
+    "/cxp_pagos/:id",
+    checkToken,
+    cuentaPorPagar.getPagosCXP
+);
 /**
  * ID
  */

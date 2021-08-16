@@ -248,3 +248,24 @@ exports.pagarFactura = async (req, res) => {
   })
 
 }
+
+exports.getPagosCXP = async (req, res) => {
+  const idPago = req.params.id;
+
+  cuentaPorPagar.getPagosCXP(idPago, (error, results) => {
+    if(error) {
+      console.log('Error: ', error);
+      return res.status(500).json({
+        error: 1,
+        data: {
+          msg: "Ah ocurrido un error interno",
+        }
+      });
+    }
+
+    return res.status(200).json({
+      success: 1,
+      data: results,
+    });
+  });
+}
