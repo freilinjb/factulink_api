@@ -28,6 +28,13 @@ router.get(
     notaCredito.getFacturas
 );
 
+router.get(
+    "/nota_credito/facturasDetalle/:id",
+    checkToken,
+    notaCredito.getFacturasDetalle
+);
+
+
 
 
 

@@ -292,6 +292,70 @@ exports.registrarNotaCredito = async = (datos, callback) => {
         return callback(null, results);
     });
   }
+    
+exports.getFacturasDetalle = async (numFactura, callback) => {
+
+    connection.query(`
+        SELECT 
+        f.numFactura, 
+        t.descripcion AS tipoFactura,
+        f.NFC, 
+        f.fecha, 
+        t.descripcion AS tipo, 
+        c.idCliente, 
+        c.diasCredito, 
+        rs.nombre, 
+        rs.razonSocial, 
+        t1.descripcion AS telefono,
+        c2.descripcion AS correo,
+        i.descripcion AS identificacion,
+        td.direccion,
+        p.codigo, 
+        p.idProducto,
+        p.nombre AS producto,
+        df.precio, 
+        (df.cantidad - COALESCE((
+        SELECT SUM(dn.cantidad) AS cantidad FROM notacredito n
+        INNER JOIN detalle_notacredito dn ON n.notaCredito = dn.notaCredito
+        WHERE n.numFactura = f.numFactura AND dn.idProducto = p.idProducto),0)) AS cantidad,
+        df.itbis,
+        (df.precio * df.cantidad) * 1.18 AS importe,
+        CASE WHEN df.devuelto IS TRUE THEN 1 ELSE 0 END AS devuelto,
+        c1.descripcion AS categoria,
+        m.descripcion AS marca,
+        s.descripcion AS subCategoria,
+        u.descripcion AS unidad,
+        f.observacion,
+        CASE WHEN f.activo IS TRUE THEN 'Activo' ELSE 'Anulada' END AS estatus
+    FROM factura f
+        INNER JOIN detalle_factura df ON f.numFactura = df.numFactura
+        INNER JOIN cliente c ON f.idCliente = c.idCliente
+        LEFT JOIN tercero_correo tc ON tc.idTercero = c.idTercero
+        LEFT JOIN correo c2 ON tc.idCorreo = c2.idCorreo
+        INNER JOIN identificacion i ON i.idTercero = c.idTercero
+        LEFT JOIN tercero_telefono tt ON tt.idTercero = c.idTercero
+        LEFT JOIN telefono t1 ON tt.idTelefono = t1.idTelefono
+        INNER JOIN razon_social rs ON rs.idTercero = c.idTercero
+
+        INNER JOIN tercero_direccion td ON td.idTercero = c.idTercero
+        INNER JOIN direccion d ON td.idDireccion = d.idDireccion
+
+        INNER JOIN tipo t ON t.idTipo = f.idTipoFactura
+        INNER JOIN producto p ON df.idProducto = p.idProducto
+        INNER JOIN categoria c1 ON p.idCategoria = c1.idCategoria
+        INNER JOIN subcategoria s ON s.idSubCategoria = p.idSubCategoria
+        INNER JOIN marca m ON p.idMarca = m.idMarca
+        INNER JOIN unidad u ON p.idUnidad = u.idUnidad
+
+    WHERE f.numFactura = ?`,
+    [numFactura],
+    (error, fac, fields) => {
+    console.log('FacturaFac:numFactura ', numFactura);
+    factura = fac;
+    console.log('ErrorFactura: ', error);
+    return error ? callback(error) : callback(null, fac);
+    });
+}
 
 exports.getCxPProveedor = async (idProveedor, callback) => {
     try {

@@ -70,3 +70,58 @@ exports.getEmpresa = async (callback) => {
     return "Ah ocurrido un error";
   }
 };
+
+
+exports.getConfiguracion = async (callback) => {
+  try {
+    connection.query(
+      `
+      SELECT 
+      c.idUsuario, 
+      c.mensajeImpresion, 
+      c.formatoImpresion, 
+      c.mensajePrincipalTickets,
+      CASE WHEN c.modoPos IS TRUE THEN 1 ELSE 0 END modoPos,
+      CASE WHEN c.redondearCambio IS TRUE THEN 1 ELSE 0 END redondearCambio,
+      CASE WHEN c.mostrarDevuelto IS TRUE THEN 1 ELSE 0 END mostrarDevuelto
+      FROM configuracion c
+      `,
+      [],
+      (error, results, fields) => {
+        return error  ? callback(error)  : callback(null, results);
+      }
+    );
+
+  } catch (error) {
+    console.error("error: ", error);
+    return "Ah ocurrido un error";
+  }
+};
+
+exports.saveConfig = async (data, callback) => {
+  try {
+    console.log('saveCustomer: ', data);
+    // console.log( `UPDATE configuracion c SET c.mensajeImpresion = '${data.mensajeImpresion}',
+    // c.formatoImpresion = '${data.formatoImpresion}', c.mensajePrincipalTickets = '${data.mensajePrincipalTickets}',
+    // c.modoPos = ${data.modoPos}, c.redondearCambio = ${data.redondearCambio},
+    // c.mostrarDevuelto = ${data.mostrarDevuelto}`);
+
+    // return;
+    connection.query(
+      `UPDATE configuracion c SET c.mensajeImpresion = '${data.mensajeImpresion}',
+        c.formatoImpresion = '${data.formatoImpresion}', c.mensajePrincipalTickets = '${data.mensajePrincipalTickets}',
+        c.modoPos = ${data.modoPos}, c.redondearCambio = ${data.redondearCambio},
+        c.mostrarDevuelto = ${data.mostrarDevuelto}`,
+      [],
+      (error, result, fields) => {
+        return error ? callback(error) : callback(null, result[0]);
+      }
+    );
+  } catch (error) {
+    console.log("Error: ", error);
+  }
+};
+
+
+
+

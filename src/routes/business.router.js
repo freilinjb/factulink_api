@@ -4,18 +4,6 @@ const { upload } = require("../helpers");
 const { checkToken } = require('../auth/token_validation');
 const business = require('../controllers/business.controller');
 
-// router.get(
-//     "/customer",
-//     checkToken,
-//     business.getCustomer
-// );
-
-// router.get(
-//     "/customer/comprobante",
-//     checkToken,
-//     business.getComprobante
-// );
-
 router.get(
     "/bussiness",
     checkToken,
@@ -26,6 +14,16 @@ router.post("/bussiness", [
     checkToken,
     upload.single("img"),
     business.saveEmpresa
+]);
+
+router.post("/bussiness/config", 
+    checkToken,
+    business.saveConfig
+    );
+
+router.get("/bussiness/config", [
+    checkToken,
+    business.getConfiguracion
 ]);
 
 module.exports = router;
