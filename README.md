@@ -18,15 +18,11 @@ It uses `run-curl-tests.rb` which runs each command defined in
 
 ## Install
 
-    bundle install
+    npm install
 
 ## Run the app
 
-    unicorn -p 4000
-
-## Run the tests
-
-    ./run-tests.sh
+    npm run dev
 
 # REST API
 
