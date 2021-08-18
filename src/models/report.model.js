@@ -804,3 +804,80 @@ exports.getPagoPorIDDocumento = async(idPago, callback) => {
     return error ? callback(error) : callback(null, results);
   })
 }
+
+
+exports.getMarcesVentas = async (callback) => {
+  connection.query(
+    `SELECT p.marca, COUNT(p.marca) FROM factura f
+      INNER JOIN detalle_factura df ON f.numFactura = df.numFactura
+      INNER JOIN producto_v p ON df.idProducto = p.idProducto
+      WHERE MONTH(f.fecha) = MONTH(CURRENT_DATE())
+      GROUP BY 1;
+  `,
+    [],
+    (error, results, fields) => {
+      return error ? callback(error) : callback(null, results);
+    }
+  );
+};
+
+
+exports.getCategoriasVentas = async (callback) => {
+  connection.query(
+    `SELECT p.categoria, COUNT(p.categoria) AS cantidad FROM factura f
+      INNER JOIN detalle_factura df ON f.numFactura = df.numFactura
+      INNER JOIN producto_v p ON df.idProducto = p.idProducto
+      WHERE MONTH(f.fecha) = MONTH(CURRENT_DATE())
+      GROUP BY 1;
+  `,
+    [],
+    (error, results, fields) => {
+      return error ? callback(error) : callback(null, results);
+    }
+  );
+};
+
+exports.getVentasActuales = async (callback) => {
+  connection.query(
+    `SELECT ROUND(SUM((df.precio*df.cantidad)+df.itbis),2) AS precio FROM factura f
+      INNER JOIN detalle_factura df ON f.numFactura = df.numFactura
+      INNER JOIN producto_v p ON df.idProducto = p.idProducto
+      WHERE MONTH(f.fecha) = MONTH(CURRENT_DATE());
+  `,
+    [],
+    (error, results, fields) => {
+      return error ? callback(error) : callback(null, results);
+    }
+  );
+};
+
+
+exports.getClientesActuales = async (callback) => {
+  connection.query(
+    `SELECT COALESCE(cv.nombre, cv.razonSocial) cliente, cv.urlFoto, ROUND(SUM((df.precio*df.cantidad)+df.itbis),2) AS monto FROM factura f
+      INNER JOIN detalle_factura df ON f.numFactura = df.numFactura
+      INNER JOIN cliente_v cv ON cv.idCliente = f.idCliente
+      WHERE MONTH(f.fecha) = MONTH(CURRENT_DATE())
+      GROUP BY 1
+      ORDER BY 2 DESC LIMIT 5;
+  `,
+    [],
+    (error, results, fields) => {
+      return error ? callback(error) : callback(null, results);
+    }
+  );
+};
+
+
+exports.getClienteCantidad = async (callback) => {
+  connection.query(
+    `SELECT COUNT(c.idCliente) AS cantidadCliente FROM cliente c
+      INNER JOIN factura f ON c.idCliente = f.idCliente
+      WHERE MONTH(f.fecha) = MONTH(CURRENT_DATE());
+  `,
+    [],
+    (error, results, fields) => {
+      return error ? callback(error) : callback(null, results);
+    }
+  );
+};

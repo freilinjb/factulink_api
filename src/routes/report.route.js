@@ -82,4 +82,34 @@ router.post(
   report.saveCompras
 );
 
+router.get(
+  "/report/dashboard/marcas_ventas",
+  checkToken,
+  report.getMarcesVentas
+);
+
+router.get(
+  "/report/dashboard/categorias_ventas",
+  checkToken,
+  report.getCategoriasVentas
+);
+
+router.get(
+  "/report/dashboard/ventas_actual",
+  checkToken,
+  report.getVentasActuales
+);
+
+router.get(
+  "/report/dashboard/clientes_actuales",
+  checkToken,
+  report.getClientesActuales
+);
+
+router.get(
+  "/report/dashboard/clientes_cantidad",
+  checkToken,
+  report.getClienteCantidad
+);
+
 module.exports = router;

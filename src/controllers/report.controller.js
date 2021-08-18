@@ -518,3 +518,79 @@ exports.saveCompras = async (req, res) => {
   }
 
 }
+
+exports.getMarcesVentas = async (req, res) => {
+  report.getMarcesVentas((err, results) => {
+    if(err) {
+      return res.status(500).json({
+        error: 1,
+        msg: "Ah ocurrido un error",
+      });
+    }
+    return res.status(200).json({
+      success: 1,
+      data: results
+    });
+  })
+}
+
+exports.getCategoriasVentas = async (req, res) => {
+  report.getCategoriasVentas((err, results) => {
+    if(err) {
+      return res.status(500).json({
+        error: 1,
+        msg: "Ah ocurrido un error",
+      });
+    }
+    return res.status(200).json({
+      success: 1,
+      data: results
+    });
+  })
+}
+
+exports.getVentasActuales = async (req, res) => {
+  report.getVentasActuales((err, results) => {
+    if(err) {
+      return res.status(500).json({
+        error: 1,
+        msg: "Ah ocurrido un error",
+      });
+    }
+    return res.status(200).json({
+      success: 1,
+      data: results
+    });
+  })
+}
+
+exports.getClientesActuales = async (req, res) => {
+  report.getClientesActuales((err, results) => {
+    if(err) {
+      return res.status(500).json({
+        error: 1,
+        msg: "Ah ocurrido un error",
+      });
+    }
+    return res.status(200).json({
+      success: 1,
+      data: results
+    });
+  })
+}
+
+exports.getClienteCantidad = async (req, res) => {
+  report.getClienteCantidad((err, results) => {
+    if(err) {
+      return res.status(500).json({
+        error: 1,
+        msg: "Ah ocurrido un error",
+      });
+    }
+    return res.status(200).json({
+      success: 1,
+      data: results
+    });
+  })
+}
+
