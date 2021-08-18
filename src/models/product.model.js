@@ -14,6 +14,7 @@ exports.getProduct = async (data, callback) => {
 
       data.search = data.search.trim();
       search = ` WHERE concat(p.codigo,p.nombre, p.marca, p.categoria, p.subcategoria, p.stockInicial,p.stockMinimo,p.reorden,p.precioVenta, p.precioCompra, p.incluyeItbis,p.creado_por) LIKE '%${data.search}%' `; 
+      // console.log('Buscando: ', search);
     }
 
     if (data.idProducto == null && data.limit && data.offset >= 0) {
@@ -22,7 +23,8 @@ exports.getProduct = async (data, callback) => {
     
       condicion += ` LIMIT ${data.limit}  OFFSET ${data.offset} `;
     }
-    console.log('data: ', search);
+    console.log('condicion: ', condicion);
+    console.log('search: ', search);
 
     
     let total_page = 0;

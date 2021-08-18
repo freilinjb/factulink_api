@@ -78,7 +78,7 @@ exports.getConfiguracion = async (callback) => {
       `
       SELECT 
       c.idUsuario, 
-      c.mensajeImpresion, 
+      c.mensajeImpresion,
       c.formatoImpresion, 
       c.mensajePrincipalTickets,
       CASE WHEN c.modoPos IS TRUE THEN 1 ELSE 0 END modoPos,
